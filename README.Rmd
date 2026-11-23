@@ -11,44 +11,218 @@ knitr::opts_chunk$set(
   fig.path = "man/figures/README-",
   out.width = "100%"
 )
+options(width = 100, pillar.width = 100)
 ```
 
 # tidymontage
 
 <!-- badges: start -->
+[![R-CMD-check](https://github.com/jbengler/tidymontage/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/jbengler/tidymontage/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
-The goal of tidymontage is to ...
+The goal of tidymontage is to streamline the creation of publication-ready
+microscopy figure montages. It is a sibling of
+[tidyplots](https://github.com/jbengler/tidyplots): a tidy data frame of images
+goes in, montage components are added with pipeable verbs, and a ggplot comes
+out.
+
+tidymontage is in early development. Reading images and processing them with
+dplyr works; the montage renderer does not exist yet.
 
 ## Installation
 
-You can install the development version of tidymontage like so:
+You can install the development version of tidymontage from
+[GitHub](https://github.com/jbengler/tidymontage) with:
 
 ``` r
-# FILL THIS IN! HOW CAN PEOPLE INSTALL YOUR DEV PACKAGE?
+# install.packages("pak")
+pak::pak("jbengler/tidymontage")
 ```
 
-## Example
+## The data model
 
-This is a basic example which shows you how to solve a common problem:
+The examples below use the microscope exports in `demo_images/`. They are not
+part of the package (too large), so run them from a local checkout that has
+the folder.
 
-```{r example}
+### One row per image
+
+`read_images()` takes files or directories and returns a long tibble with one
+row per image: per file, channel, z-slice and time point. The `img` column
+holds lazy references to **greyscale** images; no pixels are read at this
+point.
+
+```{r read}
 library(tidymontage)
-## basic example code
+library(dplyr)
+library(tidyr)
+
+images <- read_images("demo_images")
+images
 ```
 
-What is special about using `README.Rmd` instead of just `README.md`? You can include R chunks like so:
+How many images does each file contribute, and where did the metadata come
+from?
 
-```{r cars}
-summary(cars)
+```{r count}
+images |>
+  count(file = basename(filepath), meta_source, pixel_size_source, name = "images")
 ```
 
-You'll still need to render `README.Rmd` regularly, to keep `README.md` up-to-date. `devtools::build_readme()` is handy for this.
+Channel labels, colours and calibration come straight from the microscope
+metadata:
 
-You can also embed plots, for example:
-
-```{r pressure, echo = FALSE}
-plot(pressure)
+```{r channels}
+images |>
+  filter(grepl("Airyscan", filepath), z == 1) |>
+  select(channel, channel_name, color, size_x, size_z, pixel_size, z_step)
 ```
 
-In that case, don't forget to commit and push the resulting figure files, so they display on GitHub and CRAN.
+### A helper to look at images
+
+The renderer does not exist yet, so for playing around here is a small
+`peek()` helper. It reads the pixels of the `img` column (with the internal
+`img_pixels()`), tints each image with its channel colour and shows them side
+by side. Colour is only applied here, at display time: the tibble itself only
+holds greyscale images.
+
+```{r peek-helper}
+peek <- function(data, label = channel, step = 4) {
+  labels <- as.character(rlang::eval_tidy(rlang::enquo(label), data))
+  colors <- if ("color" %in% names(data)) data$color else rep("#FFFFFF", nrow(data))
+  pixels <- tidymontage:::img_pixels(data$img)
+  op <- par(mfrow = c(1, length(pixels)), mar = c(0, 0, 1.5, 0))
+  on.exit(par(op))
+  for (i in seq_along(pixels)) {
+    x <- pixels[[i]][seq(1, nrow(pixels[[i]]), step), seq(1, ncol(pixels[[i]]), step)]
+    v <- pmin(x / quantile(x, 0.999), 1)
+    rgb <- grDevices::col2rgb(colors[i])[, 1] / 255
+    plot(as.raster(matrix(grDevices::rgb(v * rgb[1], v * rgb[2], v * rgb[3]), nrow(x))))
+    title(labels[i], col.main = "grey30", cex.main = 0.9)
+  }
+}
+```
+
+Every row is an image you can look at:
+
+```{r peek-rows, fig.width = 10, fig.height = 2.6}
+stack <- images |> filter(grepl("Airyscan", filepath))
+
+stack |>
+  filter(channel == "Alexa Fluor 488", z %in% c(1, 3, 5, 7)) |>
+  peek(label = paste("z =", z))
+```
+
+### Select images with `filter()`
+
+A single z-slice of all channels:
+
+```{r filter-slice, fig.width = 10, fig.height = 2.6}
+stack |>
+  filter(z == 4) |>
+  peek()
+```
+
+### Project with `summarise()`
+
+A maximum projection is a `summarise()` per channel. The result is still lazy:
+`max of 7` is a recipe that is computed, plane by plane, only when the pixels
+are needed.
+
+```{r project}
+projected <- stack |>
+  summarise(img = max(img), .by = c(filepath, channel, color))
+projected
+```
+
+```{r project-peek, fig.width = 10, fig.height = 2.6}
+peek(projected)
+```
+
+Projections can be restricted to part of the stack, just by filtering first:
+
+```{r substack}
+stack |>
+  filter(z %in% 3:5) |>
+  summarise(img = max(img), .by = channel)
+```
+
+`max()`, `min()` and `mean()` are available. Several projections side by side
+are just several summaries, and `pivot_longer()` turns them back into rows:
+
+```{r compare}
+projections <- stack |>
+  filter(channel == "Hoechst 33258") |>
+  summarise(max = max(img), mean = mean(img), min = min(img), .by = c(channel, color)) |>
+  pivot_longer(c(max, mean, min), names_to = "projection", values_to = "img")
+projections
+```
+
+```{r compare-peek, fig.width = 8, fig.height = 2.8}
+peek(projections, label = projection)
+```
+
+### Describe the experiment with `mutate()` and joins
+
+Conditions, targets or anything else are ordinary columns. Here the mutant is
+derived from the file name, and the stained protein comes from a lookup table:
+
+```{r describe}
+targets <- tribble(
+  ~channel,          ~target,
+  "Cy3",             "HA-BCL-xL",
+  "Alexa Fluor 488", "eGFP-L6",
+  "DAPI",            "nuclei"
+)
+
+cells <- images |>
+  filter(grepl("\\.ome\\.tif$", filepath)) |>
+  mutate(mutant = if_else(grepl("I56A", filepath), "I56A", "L59A")) |>
+  left_join(targets, by = "channel")
+
+cells |> select(mutant, channel, target, color, img)
+```
+
+```{r describe-peek, fig.width = 10, fig.height = 2.6}
+cells |>
+  filter(target != "nuclei") |>
+  peek(label = paste(mutant, target))
+```
+
+Changing a colour is a `mutate()` as well. Nothing is re-read: colour is only
+used when images are displayed.
+
+```{r recolor, fig.width = 10, fig.height = 2.6}
+cells |>
+  filter(mutant == "I56A") |>
+  mutate(color = case_match(channel, "Cy3" ~ "#E69F00", "Alexa Fluor 488" ~ "#56B4E9", "DAPI" ~ "#FFFFFF")) |>
+  peek(label = target)
+```
+
+### Things that are refused
+
+Images only support operations that make sense for images:
+
+```{r refused, error = TRUE}
+# summing intensities across images is not a projection
+stack |> summarise(img = sum(img), .by = channel)
+
+# images have no natural order
+stack |> arrange(img)
+
+# projecting images of different sizes (2024 x 2024 and 1796 x 1796 pixels)
+images |> summarise(img = max(img), .by = channel_index)
+```
+
+### Start a montage
+
+Finally, the processed tibble goes into `tidymontage()`, with variables mapped
+to the columns and rows of the figure:
+
+```{r montage}
+tidymontage(cells, x = mutant, y = target)
+```
+
+Printing a montage shows its recipe for now; once the renderer exists, it will
+draw the figure: colours, merges, crops, zoom insets, labels and scale bars,
+with linked exposure per channel.
