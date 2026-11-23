@@ -4,27 +4,57 @@
 \alias{tidymontage}
 \title{Start a montage}
 \usage{
-tidymontage(images, x = NULL, y = NULL, layout = NULL)
+tidymontage(
+  images,
+  x = NULL,
+  y = NULL,
+  ...,
+  layout = "grid",
+  gap = 1,
+  width = 90,
+  height = 90,
+  units = c("mm", "cm", "in")
+)
 }
 \arguments{
 \item{images}{A data frame of images, usually from \code{\link[=read_images]{read_images()}}. Must
-contain the columns \code{filepath}, \code{channel} and \code{img}. Any additional
-columns, such as \code{condition}, can be used in \code{x} and \code{y}.}
+contain the columns \code{filepath}, \code{channel} and \code{img}.}
 
-\item{x, y}{<\code{\link[rlang:args_data_masking]{data-masking}}> Variables that are
-mapped to the columns (\code{x}) and rows (\code{y}) of the montage, for example
-\code{condition} or \code{genotype}. Use \code{NULL} (the default) for no mapping.}
+\item{x, y}{Columns mapped to the columns (\code{x}) and rows (\code{y}) of the montage:
+a bare name such as \code{condition}, or several with \code{c()} (the first one
+varies slowest). In the grid layout, \code{channel} and \code{view} can be mapped
+too.}
 
-\item{layout}{A layout specification. Layouts are not implemented yet, so
-this must currently be \code{NULL}.}
+\item{...}{Choose and order the levels of panel dimensions, for example
+\code{channel = c("GFP", "DAPI")} or \code{condition = "ctrl"}.}
+
+\item{layout}{\code{"grid"} (the default) or \code{"hero"}, or a layout created with
+\code{\link[=layout_grid]{layout_grid()}} or \code{\link[=layout_hero]{layout_hero()}}.}
+
+\item{gap}{Gap between panels in mm.}
+
+\item{width, height, units}{Size of the box the panel grid fits into, see
+\code{\link[=adjust_size]{adjust_size()}}. Default: 90 x 90 mm.}
 }
 \value{
-A \code{tidymontage} object.
+A \code{tidymontage} object. Printing it draws the montage.
 }
 \description{
-\code{tidymontage()} turns a data frame of images into a montage recipe. Nothing
-is read from disk at this point: the \verb{add_*()} and \verb{adjust_*()} verbs append
-steps to the recipe, and pixels are only read when the montage is rendered.
+\code{tidymontage()} turns a tibble of images into a montage. Like \code{tidyplot()}
+in tidyplots, it takes the mapping and the size; \verb{add_*()} and \verb{adjust_*()}
+verbs then add merges, crops, zooms, scale bars and more. Nothing is read
+from disk until the montage is printed or saved.
+}
+\details{
+The images tibble decides \emph{which} images are shown: select planes with
+\code{filter()} and project z-stacks with \code{summarise(img = max(img))} before
+calling \code{tidymontage()}. Everything visual is decided by the montage.
+
+Columns mapped to \code{x} and \code{y} (such as \code{condition}) arrange blocks of
+panels. Within each block, the layout arranges channels and views (see
+\code{\link[=layout_grid]{layout_grid()}}); in the grid, map \code{channel} or \code{view} to \code{x} or \code{y} to
+place them yourself. Merges and zooms added later become levels of
+\code{channel} and \code{view}. Each panel must show exactly one image.
 }
 \examples{
 \dontrun{

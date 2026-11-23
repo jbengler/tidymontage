@@ -23,21 +23,8 @@
       Error in `tidymontage()`:
       ! Column filepath must be a character vector, not an integer vector.
     Code
-      tidymontage(example_images(), x = genotype)
+      tidymontage(dplyr::mutate(example_images(), view = "a"))
     Condition
       Error in `tidymontage()`:
-      ! Can't map `x` to `genotype`.
-      Caused by error:
-      ! object 'genotype' not found
-    Code
-      tidymontage(example_images(), x = 1:3)
-    Condition
-      Error in `tidymontage()`:
-      ! `x` must have length 1 or 4 (the number of images).
-      x `1:3` has length 3.
-    Code
-      tidymontage(example_images(), layout = "grid")
-    Condition
-      Error in `tidymontage()`:
-      ! Layouts are not implemented yet, `layout` must be `NULL`.
+      ! `images` can't have a column named view: it is reserved for the montage views.
 

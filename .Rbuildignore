@@ -10,3 +10,4 @@
 ^\.github$
 ^dev$
 ^air\.toml$
+^man/figures/README-.*\.png$

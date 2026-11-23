@@ -1,23 +1,22 @@
-# print() summarises the recipe
+# format() summarises the steps
 
     Code
-      print(m)
+      cat(format(m), sep = "\n")
     Output
       <tidymontage> 4 images from 2 files, 2 channels
-      x: condition  y: <none>
-      layout: <default>
+      tidymontage(images)
       steps:
         (none)
 
 ---
 
     Code
-      print(m)
+      cat(format(m), sep = "\n")
     Output
       <tidymontage> 4 images from 2 files, 2 channels
-      x: condition  y: <none>
-      layout: <default>
+      tidymontage(images)
       steps:
-        1. select_planes(z = "max", t = 1L)
-        2. add_merge()
+        1. adjust_colors(DAPI = "#0072B2")
+        2. adjust_exposure(min = 0, max = "p99", GFP = c("p1", 4000), .by = c(channel, condition))
+        3. adjust_layout(x = condition, y = channel, channel = c("GFP", "DAPI"))
 

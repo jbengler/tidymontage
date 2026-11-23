@@ -1,0 +1,58 @@
+test_that("bin_mean() averages blocks", {
+  m <- matrix(1:16, 4, 4)
+  expect_equal(bin_mean(m, 1), m)
+  expect_equal(bin_mean(m, 2), matrix(c(mean(c(1, 2, 5, 6)), mean(c(3, 4, 7, 8)), mean(c(9, 10, 13, 14)), mean(c(11, 12, 15, 16))), 2, 2))
+  expect_equal(dim(bin_mean(matrix(0, 5, 7), 2)), c(2, 3))
+})
+
+test_that("tint_raster() maps the display range onto the colour", {
+  m <- matrix(c(0, 50, 100, 200), 2, 2)
+  r <- tint_raster(m, lo = 0, hi = 100, color = "#FF8000")
+  expect_s3_class(r, "nativeRaster")
+  # unpack: nativeRaster stores packed ABGR integers row by row
+  v <- as.numeric(unclass(r)) + 2^32 * (unclass(r) < 0)
+  hex <- sprintf("#%02X%02X%02X", v %% 256, (v %/% 256) %% 256, (v %/% 65536) %% 256)
+  px <- matrix(hex, 2, 2, byrow = TRUE)
+  expect_equal(px[1, 1], "#000000")
+  expect_equal(px[2, 1], "#804000")
+  expect_equal(px[1, 2], "#FF8000")
+  expect_equal(px[2, 2], "#FF8000") # clipped at max
+})
+
+test_that("montage_build() reads pixels, links ranges and tints", {
+  images <- local_montage_images()
+  m <- tidymontage(images) |> adjust_layout(x = condition, y = channel)
+  b <- montage_build(m, dpi = 72)
+
+  expect_equal(nrow(b$panels), 4)
+  # linked per channel: channel 1 spans 0..179 over both conditions
+  expect_equal(b$panels$display_min[b$panels$channel == "C1"], rep(stats::quantile(c(0:79, 100:179), 0.001, names = FALSE), 2))
+  expect_equal(b$panels$color, c("#FF00FF", "#FF00FF", "#00FF00", "#00FF00"))
+  expect_true(all(vapply(b$rasters, inherits, logical(1), "nativeRaster")))
+  expect_equal(dim(b$rasters[[1]]), c(8, 10)) # tiny images: no binning
+})
+
+test_that("save_montage() writes a file of the exact size", {
+  skip_if_not_installed("png")
+  images <- local_montage_images()
+  path <- withr::local_tempfile(fileext = ".png")
+  m <- tidymontage(images) |>
+    adjust_colors(C2 = "white") |> adjust_layout(x = condition, y = channel) |>
+    adjust_size(width = 50.8 - strip_mm(7), height = NA)
+  expect_message(save_montage(m, path, dpi = 100), "Saved")
+  p <- png::readPNG(path)
+  panel_w <- (50.8 - strip_mm(7) - 1) / 2
+  height <- strip_mm(7) + 2 * panel_w * 0.8 + 1
+  expect_equal(dim(p)[2], 200) # 2 inches at 100 dpi
+  expect_lte(abs(dim(p)[1] - height / 25.4 * 100), 1)
+})
+
+test_that("montages render consistently", {
+  skip_on_cran()
+  skip_if_not_installed("vdiffr")
+  images <- local_montage_images()
+  m <- tidymontage(images) |>
+    adjust_exposure(min = 0, max = "p100") |> adjust_layout(x = condition, y = channel)
+  vdiffr::expect_doppelganger("grid of two conditions", autoplot(m, dpi = 72))
+  vdiffr::expect_doppelganger("row of channels", autoplot(adjust_layout(m, x = channel, y = NULL, condition = "ko"), dpi = 72))
+})

@@ -1,19 +1,35 @@
 #' Start a montage
 #'
-#' `tidymontage()` turns a data frame of images into a montage recipe. Nothing
-#' is read from disk at this point: the `add_*()` and `adjust_*()` verbs append
-#' steps to the recipe, and pixels are only read when the montage is rendered.
+#' `tidymontage()` turns a tibble of images into a montage. Like `tidyplot()`
+#' in tidyplots, it takes the mapping and the size; `add_*()` and `adjust_*()`
+#' verbs then add merges, crops, zooms, scale bars and more. Nothing is read
+#' from disk until the montage is printed or saved.
+#'
+#' The images tibble decides *which* images are shown: select planes with
+#' `filter()` and project z-stacks with `summarise(img = max(img))` before
+#' calling `tidymontage()`. Everything visual is decided by the montage.
+#'
+#' Columns mapped to `x` and `y` (such as `condition`) arrange blocks of
+#' panels. Within each block, the layout arranges channels and views (see
+#' [layout_grid()]); in the grid, map `channel` or `view` to `x` or `y` to
+#' place them yourself. Merges and zooms added later become levels of
+#' `channel` and `view`. Each panel must show exactly one image.
 #'
 #' @param images A data frame of images, usually from [read_images()]. Must
-#'   contain the columns `filepath`, `channel` and `img`. Any additional
-#'   columns, such as `condition`, can be used in `x` and `y`.
-#' @param x,y <[`data-masking`][rlang::args_data_masking]> Variables that are
-#'   mapped to the columns (`x`) and rows (`y`) of the montage, for example
-#'   `condition` or `genotype`. Use `NULL` (the default) for no mapping.
-#' @param layout A layout specification. Layouts are not implemented yet, so
-#'   this must currently be `NULL`.
+#'   contain the columns `filepath`, `channel` and `img`.
+#' @param x,y Columns mapped to the columns (`x`) and rows (`y`) of the montage:
+#'   a bare name such as `condition`, or several with `c()` (the first one
+#'   varies slowest). In the grid layout, `channel` and `view` can be mapped
+#'   too.
+#' @param ... Choose and order the levels of panel dimensions, for example
+#'   `channel = c("GFP", "DAPI")` or `condition = "ctrl"`.
+#' @param layout `"grid"` (the default) or `"hero"`, or a layout created with
+#'   [layout_grid()] or [layout_hero()].
+#' @param gap Gap between panels in mm.
+#' @param width,height,units Size of the box the panel grid fits into, see
+#'   [adjust_size()]. Default: 90 x 90 mm.
 #'
-#' @returns A `tidymontage` object.
+#' @returns A `tidymontage` object. Printing it draws the montage.
 #'
 #' @examples
 #' \dontrun{
@@ -23,19 +39,32 @@
 #' }
 #'
 #' @export
-tidymontage <- function(images, x = NULL, y = NULL, layout = NULL) {
+tidymontage <- function(images, x = NULL, y = NULL, ..., layout = "grid", gap = 1,
+                        width = 90, height = 90, units = c("mm", "cm", "in")) {
   check_images(images)
   images <- tibble::as_tibble(images)
-  mapping <- list(x = rlang::enquo(x), y = rlang::enquo(y))
-  check_mapping(mapping, images)
-  check_layout(layout)
-  new_tidymontage(images = images, mapping = mapping, layout = layout)
+  x <- dims_from_quo(rlang::enquo(x), images, arg = "x")
+  y <- dims_from_quo(rlang::enquo(y), images, arg = "y")
+  check_xy(x, y)
+  setup <- list(
+    x = x,
+    y = y,
+    levels = check_levels(rlang::list2(...), images),
+    layout = as_layout(layout),
+    gap = check_gap(gap),
+    size = size_spec(width, height, rlang::arg_match(units))
+  )
+  new_tidymontage(images = images, setup = setup)
 }
 
-new_tidymontage <- function(images, mapping, layout = NULL, steps = list()) {
-  structure(
-    list(images = images, mapping = mapping, layout = layout, steps = steps),
-    class = "tidymontage"
+new_tidymontage <- function(images, setup = default_setup(), steps = list()) {
+  structure(list(images = images, setup = setup, steps = steps), class = "tidymontage")
+}
+
+default_setup <- function() {
+  list(
+    x = character(), y = character(), levels = list(), layout = layout_grid(), gap = 1,
+    size = size_spec(90, 90, "mm")
   )
 }
 
@@ -84,46 +113,13 @@ check_images <- function(images, call = rlang::caller_env()) {
       call = call
     )
   }
-  invisible(images)
-}
-
-check_mapping <- function(mapping, images, call = rlang::caller_env()) {
-  for (aes in names(mapping)) {
-    quo <- mapping[[aes]]
-    if (rlang::quo_is_null(quo)) {
-      next
-    }
-    value <- tryCatch(
-      rlang::eval_tidy(quo, data = images),
-      error = function(cnd) {
-        cli::cli_abort(
-          "Can't map {.arg {aes}} to {.code {rlang::as_label(quo)}}.",
-          parent = cnd,
-          call = call
-        )
-      }
-    )
-    if (!length(value) %in% c(1L, nrow(images))) {
-      cli::cli_abort(
-        c(
-          "{.arg {aes}} must have length 1 or {nrow(images)} (the number of images).",
-          "x" = "{.code {rlang::as_label(quo)}} has length {length(value)}."
-        ),
-        call = call
-      )
-    }
-  }
-  invisible(mapping)
-}
-
-check_layout <- function(layout, call = rlang::caller_env()) {
-  if (!is.null(layout)) {
+  if ("view" %in% names(images)) {
     cli::cli_abort(
-      "Layouts are not implemented yet, {.arg layout} must be {.code NULL}.",
+      "{.arg images} can't have a column named {.field view}: it is reserved for the montage views.",
       call = call
     )
   }
-  invisible(layout)
+  invisible(images)
 }
 
 check_tidymontage <- function(x, arg = rlang::caller_arg(x), call = rlang::caller_env()) {

@@ -1,13 +1,9 @@
-test_that("tidymontage() builds a recipe without steps", {
-  m <- tidymontage(example_images(), x = condition)
-
+test_that("tidymontage() starts a montage without steps", {
+  m <- tidymontage(example_images())
   expect_s3_class(m, "tidymontage")
   expect_true(is_tidymontage(m))
-  expect_named(m, c("images", "mapping", "layout", "steps"))
+  expect_named(m, c("images", "setup", "steps"))
   expect_s3_class(m$images, "tbl_df")
-  expect_equal(rlang::as_label(m$mapping$x), "condition")
-  expect_true(rlang::quo_is_null(m$mapping$y))
-  expect_null(m$layout)
   expect_equal(m$steps, list())
 })
 
@@ -16,20 +12,13 @@ test_that("tidymontage() accepts plain data frames", {
   expect_s3_class(m$images, "tbl_df")
 })
 
-test_that("tidymontage() accepts expressions in x and y", {
-  m <- tidymontage(example_images(), x = toupper(condition), y = "row")
-  expect_equal(rlang::as_label(m$mapping$x), "toupper(condition)")
-})
-
 test_that("tidymontage() validates its inputs", {
   expect_snapshot(error = TRUE, {
     tidymontage("not a data frame")
     tidymontage(example_images()[, "filepath"])
     tidymontage(transform(example_images(), img = 1:4))
     tidymontage(dplyr::mutate(example_images(), filepath = 1:4))
-    tidymontage(example_images(), x = genotype)
-    tidymontage(example_images(), x = 1:3)
-    tidymontage(example_images(), layout = "grid")
+    tidymontage(dplyr::mutate(example_images(), view = "a"))
   })
 })
 

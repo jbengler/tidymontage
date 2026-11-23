@@ -14,8 +14,9 @@ publication-ready microscopy figure montages. It is a sibling of
 images goes in, montage components are added with pipeable verbs, and a
 ggplot comes out.
 
-tidymontage is in early development. Reading images and processing them
-with dplyr works; the montage renderer does not exist yet.
+tidymontage is in early development. Reading images, processing them
+with dplyr, and drawing grids of channels, merges, crops and zooms with
+labels and scale bars works; the hero layout is next.
 
 ## Installation
 
@@ -109,11 +110,12 @@ images |>
 
 ### A helper to look at images
 
-The renderer does not exist yet, so for playing around here is a small
-`peek()` helper. It reads the pixels of the `img` column (with the
-internal `img_pixels()`), tints each image with its channel colour and
-shows them side by side. Colour is only applied here, at display time:
-the tibble itself only holds greyscale images.
+For looking at the data model, here is a small `peek()` helper. It reads
+the pixels of the `img` column (with the internal `img_pixels()`), tints
+each image with its channel colour and shows them side by side. Colour
+is only applied at display time: the tibble itself only holds greyscale
+images. (Unlike the montage below, `peek()` scales every image on its
+own, so brightness is not comparable between panels.)
 
 ``` r
 peek <- function(data, label = channel, step = 4) {
@@ -142,7 +144,7 @@ stack |>
   peek(label = paste("z =", z))
 ```
 
-<img src="man/figures/README-peek-rows-1.png" alt="" width="100%" />
+![](man/figures/README-peek-rows-1.png)<!-- -->
 
 ### Select images with `filter()`
 
@@ -154,7 +156,7 @@ stack |>
   peek()
 ```
 
-<img src="man/figures/README-filter-slice-1.png" alt="" width="100%" />
+![](man/figures/README-filter-slice-1.png)<!-- -->
 
 ### Project with `summarise()`
 
@@ -179,7 +181,7 @@ projected
 peek(projected)
 ```
 
-<img src="man/figures/README-project-peek-1.png" alt="" width="100%" />
+![](man/figures/README-project-peek-1.png)<!-- -->
 
 Projections can be restricted to part of the stack, just by filtering
 first:
@@ -219,7 +221,7 @@ projections
 peek(projections, label = projection)
 ```
 
-<img src="man/figures/README-compare-peek-1.png" alt="" width="100%" />
+![](man/figures/README-compare-peek-1.png)<!-- -->
 
 ### Describe the experiment with `mutate()` and joins
 
@@ -258,7 +260,7 @@ cells |>
   peek(label = paste(mutant, target))
 ```
 
-<img src="man/figures/README-describe-peek-1.png" alt="" width="100%" />
+![](man/figures/README-describe-peek-1.png)<!-- -->
 
 Changing a colour is a `mutate()` as well. Nothing is re-read: colour is
 only used when images are displayed.
@@ -275,7 +277,7 @@ cells |>
 #> i Please use `recode_values()` instead.
 ```
 
-<img src="man/figures/README-recolor-1.png" alt="" width="100%" />
+![](man/figures/README-recolor-1.png)<!-- -->
 
 ### Things that are refused
 
@@ -305,20 +307,268 @@ images |> summarise(img = max(img), .by = channel_index)
 #> ! Can't compute `max()` of images with different sizes.
 ```
 
-### Start a montage
+## Build a montage
 
-Finally, the processed tibble goes into `tidymontage()`, with variables
-mapped to the columns and rows of the figure:
+The processed tibble goes into `tidymontage()`. Like `tidyplot()` in
+tidyplots, it takes the mapping: columns mapped to `x` and `y` (here
+`mutant`) arrange blocks of panels, and the **layout** arranges the
+channels and views within them. The default grid puts the channels on
+the free axis. Printing the montage draws it.
 
 ``` r
-tidymontage(cells, x = mutant, y = target)
-#> <tidymontage> 6 images from 2 files, 3 channels
-#> x: mutant  y: target
-#> layout: <default>
-#> steps:
-#>   (none)
+cells |>
+  tidymontage(x = mutant)
+
+cells |>
+  tidymontage(y = mutant)
 ```
 
-Printing a montage shows its recipe for now; once the renderer exists,
-it will draw the figure: colours, merges, crops, zoom insets, labels and
-scale bars, with linked exposure per channel.
+<img src="man/figures/README-montage-grid.png" alt="" width="358" />
+
+From there on, `add_*()` and `adjust_*()` verbs decide everything about
+display: merges, colours, display ranges, crops, zooms and scale bars.
+
+### Merges
+
+`add_merge()` adds a merge of channels as a virtual channel. It takes
+its place in the layout like any other channel. Mapping `channel` (or a
+column determined by it, such as `target`) yourself overrides where the
+layout puts it:
+
+``` r
+cells |>
+  tidymontage(x = target, y = mutant) |>
+  add_merge(Cy3, `Alexa Fluor 488`, DAPI, name = "merge")
+```
+
+<img src="man/figures/README-montage-merge.png" alt="" width="358" />
+
+Channels are blended additively, each with its own colour and linked
+display range. Member channels don’t need panels of their own, and
+several merges are possible:
+
+``` r
+cells |>
+  tidymontage(x = c(mutant, channel), channel = c("proteins", "all")) |>
+  add_merge(Cy3, `Alexa Fluor 488`, name = "proteins") |>
+  add_merge(Cy3, `Alexa Fluor 488`, DAPI, name = "all")
+```
+
+<img src="man/figures/README-montage-merge-only.png" alt="" width="340" />
+
+Display ranges are **linked per channel** by default: both mutants share
+one range per channel, so their brightness can be compared.
+`adjust_exposure()` changes the percentiles or sets values, and
+`adjust_colors()` overrides the colours from the metadata:
+
+``` r
+montage <- projected |>
+  tidymontage() |>
+  adjust_colors(`Hoechst 33258` = "#56B4E9") |>
+  adjust_exposure(min = "p0.1", max = "p99.8") |>
+  add_merge(`Alexa Fluor 647`, `Alexa Fluor 555`, `Alexa Fluor 488`, `Hoechst 33258`)
+montage
+```
+
+<img src="man/figures/README-montage-row.png" alt="" width="340" />
+
+### Crops and zooms
+
+`adjust_crop()` shows a region of each image. The size is given once, in
+micrometres, so all panels share one magnification; only the position
+can differ between images. Positions are the region’s center, relative
+to the full image (0-1), here one per mutant.
+
+`add_zoom()` adds a blow-up as a new **view**: panels of their own,
+which the grid places next to the main panels. A box marks the region on
+the main panels, here only on the merges:
+
+``` r
+crops <- tribble(
+  ~mutant, ~x,   ~y,
+  "I56A",  0.47, 0.40,
+  "L59A",  0.42, 0.55
+)
+zooms <- tribble(
+  ~mutant, ~x,   ~y,
+  "I56A",  0.50, 0.33,
+  "L59A",  0.40, 0.48
+)
+
+cells |>
+  tidymontage(x = mutant) |>
+  add_merge(Cy3, `Alexa Fluor 488`, DAPI) |>
+  adjust_crop(width = 60, center = crops) |>
+  add_zoom(width = 15, center = zooms, box = "merge")
+```
+
+<img src="man/figures/README-crop-zoom.png" alt="" width="358" />
+
+Display ranges are computed from the full images, so cropping doesn’t
+change brightness. Map `view` yourself to put views elsewhere, and
+choose levels as usual:
+
+``` r
+cells |>
+  tidymontage(x = mutant, y = view, channel = "merge") |>
+  add_merge(Cy3, `Alexa Fluor 488`, DAPI) |>
+  add_zoom(width = 20, center = zooms)
+```
+
+<img src="man/figures/README-zoom-rows.png" alt="" width="358" />
+
+### Hero layout
+
+Layouts work like themes: the same montage with `layout = "hero"` shows
+one big panel per block, by default the merge of the crop, next to the
+single channels of the zoom, labelled outside the images. Nothing else
+changes:
+
+``` r
+cells |>
+  tidymontage(x = mutant, layout = "hero") |>
+  add_merge(Cy3, `Alexa Fluor 488`, DAPI) |>
+  adjust_crop(width = 60, center = crops) |>
+  add_zoom(width = 15, center = zooms) |>
+  add_scale_bar() |> 
+  adjust_size(140)
+```
+
+<img src="man/figures/README-hero.png" alt="" width="558" />
+
+`layout_hero()` moves the small panels to the `"bottom"` or `"left"`,
+`labels = FALSE` removes their labels, and `panel()` chooses other hero
+or side panels:
+
+``` r
+cells |>
+  tidymontage(x = mutant, layout = layout_hero(position = "bottom", labels = FALSE)) |>
+  add_merge(Cy3, `Alexa Fluor 488`, DAPI) |>
+  adjust_crop(width = 60, center = crops) |>
+  add_zoom(width = 15, center = zooms) |> 
+  adjust_size(140) |> 
+  add_scale_bar() |> 
+  adjust_colors(DAPI = "#F1CD36") |> 
+  add_color_legend(position = "bottom")
+
+
+cells |>
+  tidymontage(x = mutant, layout = layout_hero(position = "bottom", side = panel(channel = c("Cy3", "Alexa Fluor 488", "merge"), view = c("zoom")))) |>
+  add_merge(Cy3, `Alexa Fluor 488`, DAPI) |>
+  adjust_crop(width = 60, center = crops) |>
+  add_zoom(width = 15, center = zooms) |> 
+  adjust_size(140) |> 
+  add_scale_bar() |> 
+  adjust_colors(DAPI = "#F1CD36")
+```
+
+<img src="man/figures/README-hero-bottom.png" alt="" width="519" />
+
+### Colour legend
+
+`add_color_legend()` explains the colours, like a ggplot2 legend: a
+swatch and the name of each channel shown, including the members of
+merges. In a hero layout, it can replace the labels of the small panels.
+It goes on top, at the bottom or on the right, outside the panels, so
+the montage grows and the panels keep their size:
+
+``` r
+cells |>
+  tidymontage(x = mutant, layout = layout_hero(position = "bottom", labels = FALSE)) |>
+  add_merge(Cy3, `Alexa Fluor 488`, DAPI) |>
+  adjust_crop(width = 60, center = crops) |>
+  add_zoom(width = 15, center = zooms) |>
+  add_scale_bar() |>
+  add_color_legend("bottom")
+```
+
+<img src="man/figures/README-legend.png" alt="" width="340" />
+
+### Scale bars and headers
+
+`add_scale_bar()` draws one scale bar per view, in its bottom-right
+panel; all panels of a view share one magnification, so one bar is
+enough. Without a length, a round length of about a fifth of the panel
+is chosen. Scale bars need a known pixel size.
+
+Row and column headers name the mapped levels. When several dimensions
+share an axis, the headers are nested; `adjust_headers()` hides or
+restyles them:
+
+``` r
+cells |>
+  tidymontage(x = mutant) |>
+  add_merge(Cy3, `Alexa Fluor 488`, DAPI) |>
+  adjust_crop(width = 60, center = crops) |>
+  add_zoom(width = 15, center = zooms, box = "merge") |>
+  add_scale_bar()
+```
+
+<img src="man/figures/README-annotated.png" alt="" width="358" />
+
+### Recipes and exact sizes
+
+The montage keeps its recipe, and `montage_panels()` shows the layout in
+mm without reading any pixels:
+
+``` r
+cat(format(montage), sep = "\n")
+#> <tidymontage> 4 images from 1 file, 4 channels
+#> tidymontage(images)
+#> steps:
+#>   1. adjust_colors(`Hoechst 33258` = "#56B4E9")
+#>   2. adjust_exposure(min = "p0.1", max = "p99.8", .by = channel)
+#>   3. add_merge(`Alexa Fluor 647`, `Alexa Fluor 555`, `Alexa Fluor 488`, `Hoechst 33258`, name = "merge")
+montage_panels(montage)
+#> # A tibble: 5 x 13
+#>     col   row channel         view   xmin  ymin  xmax  ymax merge px_xmin px_xmax px_ymin px_ymax
+#>   <int> <int> <chr>           <chr> <dbl> <dbl> <dbl> <dbl> <lgl>   <dbl>   <dbl>   <dbl>   <dbl>
+#> 1     1     1 Alexa Fluor 647 full    0    4.69  17.2  21.9 FALSE       1    2024       1    2024
+#> 2     2     1 Alexa Fluor 555 full   18.2  4.69  35.4  21.9 FALSE       1    2024       1    2024
+#> 3     3     1 Alexa Fluor 488 full   36.4  4.69  53.6  21.9 FALSE       1    2024       1    2024
+#> 4     4     1 Hoechst 33258   full   54.6  4.69  71.8  21.9 FALSE       1    2024       1    2024
+#> 5     5     1 merge           full   72.8  4.69  90    21.9 TRUE        1    2024       1    2024
+```
+
+Like plots in tidyplots, montages have a **fixed physical size**: by
+default, the panels and gaps (without headers) fit into a box of 90 x 90
+mm, keeping the shape of the panels. Set the size in `tidymontage()` or
+later with `adjust_size()`; `NA` leaves one side free. Printing and
+saving use the same size, so the figure looks the same on screen and in
+the file:
+
+``` r
+montage |>
+  adjust_size(width = 180, height = NA) |>
+  save_montage("figure.pdf")
+#> Saved figure.pdf (180 x 40.2 mm).
+```
+
+### The layout explains itself
+
+Every panel must show exactly one image, and the montage says so when it
+doesn’t:
+
+``` r
+# two mutants, but only channels are mapped
+cells |> tidymontage(x = channel) |> montage_panels()
+#> Error in `montage_panels()`:
+#> ! 2 images would share one panel (channel = Cy3).
+#> i Each panel shows one image. Summarise z-slices or time points first, e.g. `summarise(img =
+#>   max(img), .by = ...)`, or map another column such as filepath to `x` or `y`.
+
+# levels can be chosen and ordered
+cells |>
+  tidymontage(x = mutant, channel = "DAPI") |>
+  montage_panels()
+#> # A tibble: 2 x 14
+#>     col   row channel view  mutant  xmin  ymin  xmax  ymax merge px_xmin px_xmax px_ymin px_ymax
+#>   <int> <int> <chr>   <chr> <chr>  <dbl> <dbl> <dbl> <dbl> <lgl>   <dbl>   <dbl>   <dbl>   <dbl>
+#> 1     1     1 DAPI    full  I56A     0    4.69  44.5  49.2 FALSE       1    1796       1    1796
+#> 2     2     1 DAPI    full  L59A    45.5  4.69  90    49.2 FALSE       1    1796       1    1796
+
+# unlinking display ranges across channels is possible, but flagged
+invisible(autoplot(tidymontage(cells, x = mutant) |> adjust_exposure(.by = mutant)))
+#> Warning in autoplot(adjust_exposure(tidymontage(cells, x = mutant), .by = mutant)): A display range is shared by several channels.
+#> i Display ranges are usually linked per channel: include channel in `.by` of `adjust_exposure()`.
+```

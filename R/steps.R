@@ -35,3 +35,22 @@ print.tidymontage_step <- function(x, ...) {
   cat("<tidymontage_step> ", format(x), "\n", sep = "")
   invisible(x)
 }
+
+#' @export
+format.tidymontage_step_adjust_exposure <- function(x, ...) {
+  p <- x$params
+  args <- c(
+    paste0("min = ", format_range_spec(p$min)),
+    paste0("max = ", format_range_spec(p$max)),
+    vapply(names(p$overrides), function(nm) {
+      o <- p$overrides[[nm]]
+      paste0(nm, " = c(", format_range_spec(o$min), ", ", format_range_spec(o$max), ")")
+    }, character(1)),
+    paste0(".by = ", format_dims(p$by))
+  )
+  paste0("adjust_exposure(", paste(args, collapse = ", "), ")")
+}
+
+format_dims <- function(dims) {
+  if (length(dims) == 1) dims else paste0("c(", paste(dims, collapse = ", "), ")")
+}
