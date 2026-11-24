@@ -8,12 +8,14 @@
 #' The panel grid is scaled to fit into a box of `width` x `height`, keeping
 #' the shape of the panels: depending on the layout, one side of the grid will
 #' be shorter than the box. Use `NA` for one of them to constrain only the
-#' other side. The default is a box of 90 x 90 mm.
+#' other side. The default is a box of 90 x 90 mm; change it for all
+#' montages with [tidymontage_options()].
 #'
 #' @param montage A [tidymontage()] object.
 #' @param width,height Size of the box the panel grid has to fit into. One of
-#'   them can be `NA`.
+#'   them can be `NA`. `NULL` uses [tidymontage_options()], or 90 mm.
 #' @param units Units of `width` and `height`: `"mm"`, `"cm"` or `"in"`.
+#'   `NULL` uses [tidymontage_options()], or `"mm"`.
 #'
 #' @returns The montage with the size step added.
 #' @examples
@@ -21,9 +23,13 @@
 #' montage |> adjust_size(width = 180, height = NA)
 #' }
 #' @export
-adjust_size <- function(montage, width = 90, height = 90, units = c("mm", "cm", "in")) {
+adjust_size <- function(montage, width = NULL, height = NULL, units = NULL) {
   check_tidymontage(montage)
-  add_step(montage, new_step("adjust_size", size_spec(width, height, rlang::arg_match(units))))
+  units <- units %||% option_units()
+  units <- rlang::arg_match(units, c("mm", "cm", "in"))
+  add_step(montage, new_step("adjust_size", size_spec(
+    width %||% option_size("width"), height %||% option_size("height"), units
+  )))
 }
 
 size_spec <- function(width, height, units, call = rlang::caller_env()) {

@@ -25,9 +25,11 @@
 #'   `channel = c("GFP", "DAPI")` or `condition = "ctrl"`.
 #' @param layout `"grid"` (the default) or `"hero"`, or a layout created with
 #'   [layout_grid()] or [layout_hero()].
-#' @param gap Gap between panels in mm.
+#' @param gap Gap between panels in mm. `NULL` (the default) uses
+#'   [tidymontage_options()], or 1.
 #' @param width,height,units Size of the box the panel grid fits into, see
-#'   [adjust_size()]. Default: 90 x 90 mm.
+#'   [adjust_size()]. `NULL` (the default) uses [tidymontage_options()], or
+#'   90 x 90 mm.
 #'
 #' @returns A `tidymontage` object. Printing it draws the montage.
 #'
@@ -39,20 +41,25 @@
 #' }
 #'
 #' @export
-tidymontage <- function(images, x = NULL, y = NULL, ..., layout = "grid", gap = 1,
-                        width = 90, height = 90, units = c("mm", "cm", "in")) {
+tidymontage <- function(images, x = NULL, y = NULL, ..., layout = "grid", gap = NULL,
+                        width = NULL, height = NULL, units = NULL) {
   check_images(images)
   images <- tibble::as_tibble(images)
   x <- dims_from_quo(rlang::enquo(x), images, arg = "x")
   y <- dims_from_quo(rlang::enquo(y), images, arg = "y")
   check_xy(x, y)
+  units <- units %||% option_units()
+  units <- rlang::arg_match(units, c("mm", "cm", "in"))
   setup <- list(
     x = x,
     y = y,
     levels = check_levels(rlang::list2(...), images),
     layout = as_layout(layout),
-    gap = check_gap(gap),
-    size = size_spec(width, height, rlang::arg_match(units))
+    gap = check_gap(gap %||% option_gap()),
+    size = size_spec(
+      width %||% option_size("width"), height %||% option_size("height"),
+      units
+    )
   )
   new_tidymontage(images = images, setup = setup)
 }

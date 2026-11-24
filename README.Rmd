@@ -11,6 +11,8 @@ knitr::opts_chunk$set(
   fig.path = "man/figures/README-"
 )
 options(width = 100, pillar.width = 100)
+# all montages of this README fit into 140 x 140 mm
+tidymontage::tidymontage_options(width = 140, height = 140)
 
 # Montages have a fixed physical size: save them at that size and embed the
 # file, instead of drawing them into a device of arbitrary size.
@@ -412,6 +414,29 @@ cells |>
   add_zoom(width = 20, center = zooms)
 ```
 
+### Arrowheads
+
+`add_arrows()` points at locations with arrowheads. An arrowhead belongs to an
+image, not to a channel: it is drawn at the same place in every panel of that
+image, merges included, and in zooms wherever its tip is inside. Positions are
+given like the centers of crops, here several per mutant. Arrowheads are white
+on dark panels and black on light ones:
+
+```{r arrows}
+arrows <- tribble(
+  ~mutant, ~x,   ~y,
+  "I56A",  0.50, 0.42,
+  "I56A",  0.56, 0.36,
+  "L59A",  0.41, 0.50
+)
+
+cells |>
+  tidymontage(x = mutant, channel = c("Cy3", "Alexa Fluor 488", "merge")) |>
+  adjust_colors(`Alexa Fluor 488` = "black") |>
+  add_merge(Cy3, `Alexa Fluor 488`) |>
+  add_arrows(arrows)
+```
+
 ### Finding exposure and positions
 
 Two previews help to find the ballpark before fine-tuning the arguments.
@@ -453,8 +478,7 @@ cells |>
   add_merge(Cy3, `Alexa Fluor 488`, DAPI) |>
   add_crop(width = 60, center = crops) |>
   add_zoom(width = 15, center = zooms) |>
-  add_scale_bar() |> 
-  adjust_size(140)
+  add_scale_bar()
 ```
 
 `layout_hero()` moves the small panels to the `"bottom"` or `"left"`,
@@ -467,7 +491,6 @@ cells |>
   add_merge(Cy3, `Alexa Fluor 488`, DAPI) |>
   add_crop(width = 60, center = crops) |>
   add_zoom(width = 15, center = zooms) |> 
-  adjust_size(140) |> 
   add_scale_bar() |> 
   adjust_colors(DAPI = "#F1CD36") |> 
   add_color_legend(position = "bottom")
@@ -479,7 +502,6 @@ cells |>
   add_merge(Cy3, `Alexa Fluor 488`, DAPI) |>
   add_crop(width = 60, center = crops) |>
   add_zoom(width = 15, center = zooms) |> 
-  adjust_size(140) |> 
   add_scale_bar() |> 
   adjust_colors(DAPI = "#F1CD36")
 ```
@@ -490,7 +512,6 @@ cells |>
   add_merge(Cy3, `Alexa Fluor 488`, DAPI, colors = c(DAPI = "#F1CD36")) |>
   add_crop(width = 60, center = crops) |>
   add_zoom(width = 15, center = zooms) |> 
-  adjust_size(140) |> 
   add_scale_bar() |> 
   adjust_colors(DAPI = "#000000", Cy3 = "#000000", `Alexa Fluor 488` = "#000000")
 ```
@@ -501,7 +522,6 @@ cells |>
   add_merge(Cy3, `Alexa Fluor 488`, DAPI, colors = c(DAPI = "#F1CD36")) |>
   add_crop(width = 60, center = crops) |>
   add_zoom(width = 15, center = zooms) |> 
-  adjust_size(140) |> 
   add_scale_bar() |> 
   adjust_colors(DAPI = "#000000", Cy3 = "#000000", `Alexa Fluor 488` = "#000000")
 ```
@@ -512,7 +532,6 @@ cells |>
   add_merge(Cy3, `Alexa Fluor 488`, DAPI, colors = c(DAPI = "#F1CD36")) |>
   add_crop(width = 60, center = crops) |>
   add_zoom(width = 15, center = zooms) |> 
-  adjust_size(140) |> 
   add_scale_bar() |> 
   adjust_colors(DAPI = "#000000", Cy3 = "#000000", `Alexa Fluor 488` = "#000000")
 
@@ -568,8 +587,10 @@ get_panels(montage)
 Like plots in tidyplots, montages have a **fixed physical size**: by default,
 the panels and gaps (without headers) fit into a box of 90 x 90 mm, keeping
 the shape of the panels. Set the size in `tidymontage()` or later with
-`adjust_size()`; `NA` leaves one side free. Printing and saving use the same
-size, so the figure looks the same on screen and in the file:
+`adjust_size()`; `NA` leaves one side free. `tidymontage_options()` changes
+the default for all montages of a session; this README uses
+`tidymontage_options(width = 140, height = 140)`. Printing and saving use the
+same size, so the figure looks the same on screen and in the file:
 
 ```{r save, eval = FALSE}
 montage |>

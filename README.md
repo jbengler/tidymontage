@@ -71,7 +71,7 @@ cells |>
   tidymontage(x = mutant)
 ```
 
-<img src="man/figures/README-first.png" alt="" width="243" />
+<img src="man/figures/README-first.png" alt="" width="369" />
 
 The rest of this README first looks at the data model, the tibble of
 images, and then at what `tidymontage()` can do with it.
@@ -156,7 +156,7 @@ stack |>
   tidymontage(x = z)
 ```
 
-<img src="man/figures/README-zslices.png" alt="" width="340" />
+<img src="man/figures/README-zslices.png" alt="" width="529" />
 
 A single z-slice of all channels:
 
@@ -166,7 +166,7 @@ stack |>
   tidymontage()
 ```
 
-<img src="man/figures/README-filter-slice.png" alt="" width="340" />
+<img src="man/figures/README-filter-slice.png" alt="" width="529" />
 
 ### Project with `summarise()`
 
@@ -191,7 +191,7 @@ projected
 tidymontage(projected)
 ```
 
-<img src="man/figures/README-project-montage.png" alt="" width="340" />
+<img src="man/figures/README-project-montage.png" alt="" width="529" />
 
 Projections can be restricted to part of the stack, just by filtering
 first:
@@ -231,7 +231,7 @@ projections
 tidymontage(projections, x = projection)
 ```
 
-<img src="man/figures/README-compare-montage.png" alt="" width="340" />
+<img src="man/figures/README-compare-montage.png" alt="" width="529" />
 
 All three projections are images of the same channel, so they share one
 display range: the minimum projection really is that dim. To stretch
@@ -275,7 +275,7 @@ cells |>
   tidymontage(x = mutant, y = target)
 ```
 
-<img src="man/figures/README-describe-montage.png" alt="" width="358" />
+<img src="man/figures/README-describe-montage.png" alt="" width="547" />
 
 The `color` column holds the default colour of each image, so changing
 it is a `mutate()` as well. Nothing is re-read: colour is only used when
@@ -293,7 +293,7 @@ cells |>
 #> i Please use `recode_values()` instead.
 ```
 
-<img src="man/figures/README-recolor.png" alt="" width="340" />
+<img src="man/figures/README-recolor.png" alt="" width="529" />
 
 ### Things that are refused
 
@@ -335,14 +335,14 @@ cells |>
   tidymontage(x = mutant)
 ```
 
-<img src="man/figures/README-montage-grid.png" alt="" width="243" />
+<img src="man/figures/README-montage-grid.png" alt="" width="369" />
 
 ``` r
 cells |>
   tidymontage(y = mutant)
 ```
 
-<img src="man/figures/README-unnamed-chunk-2.png" alt="" width="358" />
+<img src="man/figures/README-unnamed-chunk-2.png" alt="" width="547" />
 
 From there on, `add_*()` and `adjust_*()` verbs decide everything about
 display: merges, colours, display ranges, crops, zooms and scale bars.
@@ -360,7 +360,7 @@ cells |>
   add_merge(Cy3, `Alexa Fluor 488`, DAPI, name = "merge")
 ```
 
-<img src="man/figures/README-montage-merge.png" alt="" width="358" />
+<img src="man/figures/README-montage-merge.png" alt="" width="547" />
 
 Channels are blended additively, each with its own colour and linked
 display range. Member channels don’t need panels of their own, and
@@ -373,7 +373,7 @@ cells |>
   add_merge(Cy3, `Alexa Fluor 488`, DAPI, name = "all")
 ```
 
-<img src="man/figures/README-montage-merge-only.png" alt="" width="340" />
+<img src="man/figures/README-montage-merge-only.png" alt="" width="529" />
 
 Display ranges are **linked per channel** by default: both mutants share
 one range per channel, so their brightness can be compared.
@@ -389,7 +389,7 @@ montage <- projected |>
 montage
 ```
 
-<img src="man/figures/README-montage-row.png" alt="" width="340" />
+<img src="man/figures/README-montage-row.png" alt="" width="529" />
 
 ### Overlays: where channels coincide
 
@@ -406,7 +406,7 @@ cells |>
   add_color_legend()
 ```
 
-<img src="man/figures/README-overlay.png" alt="" width="358" />
+<img src="man/figures/README-overlay.png" alt="" width="547" />
 
 ### Black channels: dark signal on white
 
@@ -425,7 +425,7 @@ cells |>
   add_color_legend()
 ```
 
-<img src="man/figures/README-ink.png" alt="" width="243" />
+<img src="man/figures/README-ink.png" alt="" width="369" />
 
 ### Colormaps
 
@@ -445,7 +445,7 @@ cells |>
   add_color_legend()
 ```
 
-<img src="man/figures/README-colormaps.png" alt="" width="243" />
+<img src="man/figures/README-colormaps.png" alt="" width="369" />
 
 ### Crops and zooms
 
@@ -477,7 +477,7 @@ cells |>
   add_zoom(width = 15, center = zooms, box = "merge")
 ```
 
-<img src="man/figures/README-crop-zoom.png" alt="" width="358" />
+<img src="man/figures/README-crop-zoom.png" alt="" width="547" />
 
 ``` r
 cells |>
@@ -488,7 +488,7 @@ cells |>
   preview_positions()
 ```
 
-<img src="man/figures/README-unnamed-chunk-3.png" alt="" width="364" />
+<img src="man/figures/README-unnamed-chunk-3.png" alt="" width="553" />
 
 ``` r
 cells |>
@@ -502,7 +502,7 @@ cells |>
 #> i Percentiles from 2 images sharing its display range.
 ```
 
-<img src="man/figures/README-unnamed-chunk-4.png" alt="" width="358" />
+<img src="man/figures/README-unnamed-chunk-4.png" alt="" width="547" />
 
 Display ranges are computed from the full images, so cropping doesn’t
 change brightness. Map `view` yourself to put views elsewhere, and
@@ -515,7 +515,32 @@ cells |>
   add_zoom(width = 20, center = zooms)
 ```
 
-<img src="man/figures/README-zoom-rows.png" alt="" width="358" />
+<img src="man/figures/README-zoom-rows.png" alt="" width="547" />
+
+### Arrowheads
+
+`add_arrows()` points at locations with arrowheads. An arrowhead belongs
+to an image, not to a channel: it is drawn at the same place in every
+panel of that image, merges included, and in zooms wherever its tip is
+inside. Positions are given like the centers of crops, here several per
+mutant. Arrowheads are white on dark panels and black on light ones:
+
+``` r
+arrows <- tribble(
+  ~mutant, ~x,   ~y,
+  "I56A",  0.50, 0.42,
+  "I56A",  0.56, 0.36,
+  "L59A",  0.41, 0.50
+)
+
+cells |>
+  tidymontage(x = mutant, channel = c("Cy3", "Alexa Fluor 488", "merge")) |>
+  adjust_colors(`Alexa Fluor 488` = "black") |>
+  add_merge(Cy3, `Alexa Fluor 488`) |>
+  add_arrows(arrows)
+```
+
+<img src="man/figures/README-arrows.png" alt="" width="369" />
 
 ### Finding exposure and positions
 
@@ -540,7 +565,7 @@ montage_cz |>
 #> i Percentiles from 2 images sharing its display range.
 ```
 
-<img src="man/figures/README-preview-exposure.png" alt="" width="358" />
+<img src="man/figures/README-preview-exposure.png" alt="" width="547" />
 
 `preview_positions()` shows the full images with relative axes from 0 to
 1, the values that `center` in `add_crop()` and `add_zoom()` expects.
@@ -551,7 +576,7 @@ montage_cz |>
   preview_positions()
 ```
 
-<img src="man/figures/README-preview-positions.png" alt="" width="364" />
+<img src="man/figures/README-preview-positions.png" alt="" width="553" />
 
 ### Hero layout
 
@@ -566,8 +591,7 @@ cells |>
   add_merge(Cy3, `Alexa Fluor 488`, DAPI) |>
   add_crop(width = 60, center = crops) |>
   add_zoom(width = 15, center = zooms) |>
-  add_scale_bar() |> 
-  adjust_size(140)
+  add_scale_bar()
 ```
 
 <img src="man/figures/README-hero.png" alt="" width="558" />
@@ -582,13 +606,12 @@ cells |>
   add_merge(Cy3, `Alexa Fluor 488`, DAPI) |>
   add_crop(width = 60, center = crops) |>
   add_zoom(width = 15, center = zooms) |> 
-  adjust_size(140) |> 
   add_scale_bar() |> 
   adjust_colors(DAPI = "#F1CD36") |> 
   add_color_legend(position = "bottom")
 ```
 
-<img src="man/figures/README-hero-bottom.png" alt="" width="519" />
+<img src="man/figures/README-hero-bottom.png" alt="" width="529" />
 
 ``` r
 cells |>
@@ -596,12 +619,11 @@ cells |>
   add_merge(Cy3, `Alexa Fluor 488`, DAPI) |>
   add_crop(width = 60, center = crops) |>
   add_zoom(width = 15, center = zooms) |> 
-  adjust_size(140) |> 
   add_scale_bar() |> 
   adjust_colors(DAPI = "#F1CD36")
 ```
 
-<img src="man/figures/README-unnamed-chunk-5.png" alt="" width="519" />
+<img src="man/figures/README-unnamed-chunk-5.png" alt="" width="529" />
 
 ``` r
 cells |>
@@ -609,12 +631,11 @@ cells |>
   add_merge(Cy3, `Alexa Fluor 488`, DAPI, colors = c(DAPI = "#F1CD36")) |>
   add_crop(width = 60, center = crops) |>
   add_zoom(width = 15, center = zooms) |> 
-  adjust_size(140) |> 
   add_scale_bar() |> 
   adjust_colors(DAPI = "#000000", Cy3 = "#000000", `Alexa Fluor 488` = "#000000")
 ```
 
-<img src="man/figures/README-unnamed-chunk-6.png" alt="" width="519" />
+<img src="man/figures/README-unnamed-chunk-6.png" alt="" width="529" />
 
 ``` r
 cells |>
@@ -622,12 +643,11 @@ cells |>
   add_merge(Cy3, `Alexa Fluor 488`, DAPI, colors = c(DAPI = "#F1CD36")) |>
   add_crop(width = 60, center = crops) |>
   add_zoom(width = 15, center = zooms) |> 
-  adjust_size(140) |> 
   add_scale_bar() |> 
   adjust_colors(DAPI = "#000000", Cy3 = "#000000", `Alexa Fluor 488` = "#000000")
 ```
 
-<img src="man/figures/README-unnamed-chunk-7.png" alt="" width="519" />
+<img src="man/figures/README-unnamed-chunk-7.png" alt="" width="529" />
 
 ``` r
 cells |>
@@ -635,12 +655,11 @@ cells |>
   add_merge(Cy3, `Alexa Fluor 488`, DAPI, colors = c(DAPI = "#F1CD36")) |>
   add_crop(width = 60, center = crops) |>
   add_zoom(width = 15, center = zooms) |> 
-  adjust_size(140) |> 
   add_scale_bar() |> 
   adjust_colors(DAPI = "#000000", Cy3 = "#000000", `Alexa Fluor 488` = "#000000")
 ```
 
-<img src="man/figures/README-unnamed-chunk-8.png" alt="" width="358" />
+<img src="man/figures/README-unnamed-chunk-8.png" alt="" width="547" />
 
 ### Colour legend
 
@@ -660,7 +679,7 @@ cells |>
   add_color_legend()
 ```
 
-<img src="man/figures/README-legend.png" alt="" width="340" />
+<img src="man/figures/README-legend.png" alt="" width="529" />
 
 ### Scale bars and headers
 
@@ -682,7 +701,7 @@ cells |>
   add_scale_bar()
 ```
 
-<img src="man/figures/README-annotated.png" alt="" width="358" />
+<img src="man/figures/README-annotated.png" alt="" width="547" />
 
 ### Recipes and exact sizes
 
@@ -692,7 +711,7 @@ without reading any pixels:
 ``` r
 cat(format(montage), sep = "\n")
 #> <tidymontage> 4 images from 1 file, 4 channels
-#> tidymontage(images)
+#> tidymontage(images, width = 140, height = 140)
 #> steps:
 #>   1. adjust_colors(`Hoechst 33258` = "#56B4E9")
 #>   2. adjust_exposure(min = "p0.1", max = "p99.8", .by = channel)
@@ -701,20 +720,23 @@ get_panels(montage)
 #> # A tibble: 5 x 15
 #>     col   row channel view   xmin  ymin  xmax  ymax merge overlay background px_xmin px_xmax px_ymin
 #>   <int> <int> <chr>   <chr> <dbl> <dbl> <dbl> <dbl> <lgl> <lgl>   <chr>        <dbl>   <dbl>   <dbl>
-#> 1     1     1 Alexa ~ full    0    4.69  17.2  21.9 FALSE FALSE   black            1    2024       1
-#> 2     2     1 Alexa ~ full   18.2  4.69  35.4  21.9 FALSE FALSE   black            1    2024       1
-#> 3     3     1 Alexa ~ full   36.4  4.69  53.6  21.9 FALSE FALSE   black            1    2024       1
-#> 4     4     1 Hoechs~ full   54.6  4.69  71.8  21.9 FALSE FALSE   black            1    2024       1
-#> 5     5     1 merge   full   72.8  4.69  90    21.9 TRUE  FALSE   black            1    2024       1
+#> 1     1     1 Alexa ~ full    0    4.69  27.2  31.9 FALSE FALSE   black            1    2024       1
+#> 2     2     1 Alexa ~ full   28.2  4.69  55.4  31.9 FALSE FALSE   black            1    2024       1
+#> 3     3     1 Alexa ~ full   56.4  4.69  83.6  31.9 FALSE FALSE   black            1    2024       1
+#> 4     4     1 Hoechs~ full   84.6  4.69 112.   31.9 FALSE FALSE   black            1    2024       1
+#> 5     5     1 merge   full  113.   4.69 140    31.9 TRUE  FALSE   black            1    2024       1
 #> # i 1 more variable: px_ymax <dbl>
 ```
 
 Like plots in tidyplots, montages have a **fixed physical size**: by
 default, the panels and gaps (without headers) fit into a box of 90 x 90
 mm, keeping the shape of the panels. Set the size in `tidymontage()` or
-later with `adjust_size()`; `NA` leaves one side free. Printing and
-saving use the same size, so the figure looks the same on screen and in
-the file:
+later with `adjust_size()`; `NA` leaves one side free.
+`tidymontage_options()` changes the default for all montages of a
+session; this README uses
+`tidymontage_options(width = 140, height = 140)`. Printing and saving
+use the same size, so the figure looks the same on screen and in the
+file:
 
 ``` r
 montage |>
@@ -743,8 +765,8 @@ cells |>
 #> # A tibble: 2 x 16
 #>     col   row channel view  mutant  xmin  ymin  xmax  ymax merge overlay background px_xmin px_xmax
 #>   <int> <int> <chr>   <chr> <chr>  <dbl> <dbl> <dbl> <dbl> <lgl> <lgl>   <chr>        <dbl>   <dbl>
-#> 1     1     1 DAPI    full  I56A     0    4.69  44.5  49.2 FALSE FALSE   black            1    1796
-#> 2     2     1 DAPI    full  L59A    45.5  4.69  90    49.2 FALSE FALSE   black            1    1796
+#> 1     1     1 DAPI    full  I56A     0    4.69  69.5  74.2 FALSE FALSE   black            1    1796
+#> 2     2     1 DAPI    full  L59A    70.5  4.69 140    74.2 FALSE FALSE   black            1    1796
 #> # i 2 more variables: px_ymin <dbl>, px_ymax <dbl>
 
 # unlinking display ranges across channels is possible, but flagged
@@ -753,4 +775,4 @@ tidymontage(cells, x = mutant) |> adjust_exposure(.by = mutant)
 #> i Display ranges are usually linked per channel: include channel in `.by` of `adjust_exposure()`.
 ```
 
-<img src="man/figures/README-layout-errors.png" alt="" width="243" />
+<img src="man/figures/README-layout-errors.png" alt="" width="369" />

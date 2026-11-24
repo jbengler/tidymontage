@@ -107,6 +107,24 @@ montage_grob <- function(b) {
     bx <- b$boxes
     add(rect("zoom-boxes", bx$xmin, bx$xmax, bx$ymin, bx$ymax, col = bx$color %||% "white", fill = NA, lwd = lwd(0.25)))
   }
+  if (!is.null(b$arrows)) {
+    # each panel's arrowheads are clipped to the panel
+    ar <- b$arrows
+    for (i in unique(ar$panel)) {
+      a <- ar[ar$panel == i, , drop = FALSE]
+      heads <- lapply(seq_len(nrow(a)), function(k) arrowhead_polygon(a$x[k], a$y[k], a$size[k]))
+      add(grid::polygonGrob(
+        x = n(unlist(lapply(heads, `[[`, "x"))), y = n(H - unlist(lapply(heads, `[[`, "y"))),
+        id = rep(seq_len(nrow(a)), each = 3), gp = grid::gpar(fill = a$color, col = NA),
+        vp = grid::viewport(
+          x = n(p$xmin[i]), y = n(H - p$ymax[i]), width = n(p$xmax[i] - p$xmin[i]),
+          height = n(p$ymax[i] - p$ymin[i]), just = c("left", "bottom"), clip = "on",
+          xscale = c(p$xmin[i], p$xmax[i]), yscale = c(H - p$ymax[i], H - p$ymin[i])
+        ),
+        name = paste0("arrows-", i)
+      ))
+    }
+  }
   if (!is.null(b$scale_bars)) {
     sb <- b$scale_bars
     st <- attr(sb, "style")

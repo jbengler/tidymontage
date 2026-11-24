@@ -20,7 +20,8 @@ too.}
 \item{layout}{\code{"grid"} (the default) or \code{"hero"}, or a layout created with
 \code{\link[=layout_grid]{layout_grid()}} or \code{\link[=layout_hero]{layout_hero()}}.}
 
-\item{gap}{Gap between panels in mm.}
+\item{gap}{Gap between panels in mm. \code{NULL} (the default) uses
+\code{\link[=tidymontage_options]{tidymontage_options()}}, or 1.}
 }
 \value{
 The montage with the layout step added.

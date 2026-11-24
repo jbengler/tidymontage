@@ -103,35 +103,41 @@ new_view_spec <- function(width, height, center, units, center_units, name, mont
   )
 }
 
-check_center <- function(center, center_units, images, call) {
+# Positions: c(x, y), or a data frame with columns x, y and columns of the
+# images tibble to match on. Crops and zooms need one position per image;
+# arrows (`several = TRUE`) can have any number.
+check_center <- function(center, center_units, images, call, arg = "center", several = FALSE) {
   if (is.numeric(center)) {
     if (length(center) != 2 || anyNA(center)) {
-      cli::cli_abort("{.arg center} must be {.code c(x, y)} or a data frame.", call = call)
+      cli::cli_abort("{.arg {arg}} must be {.code c(x, y)} or a data frame.", call = call)
     }
     if (center_units == "rel" && any(center < 0 | center > 1)) {
-      cli::cli_abort("Relative {.arg center} values must be between 0 and 1.", call = call)
+      cli::cli_abort("Relative {.arg {arg}} values must be between 0 and 1.", call = call)
     }
     return(invisible())
   }
   if (!is.data.frame(center)) {
-    cli::cli_abort("{.arg center} must be {.code c(x, y)} or a data frame, not {.obj_type_friendly {center}}.", call = call)
+    cli::cli_abort("{.arg {arg}} must be {.code c(x, y)} or a data frame, not {.obj_type_friendly {center}}.", call = call)
   }
   if (!all(c("x", "y") %in% names(center)) || !is.numeric(center$x) || !is.numeric(center$y)) {
-    cli::cli_abort("A {.arg center} data frame needs numeric columns {.field x} and {.field y}.", call = call)
+    cli::cli_abort("A {.arg {arg}} data frame needs numeric columns {.field x} and {.field y}.", call = call)
   }
   keys <- setdiff(names(center), c("x", "y"))
   unknown <- setdiff(keys, names(images))
   if (length(unknown) > 0) {
     cli::cli_abort(
-      "{.arg center} has column{?s} {.field {unknown}} that {?is/are} not in the images tibble.",
+      "{.arg {arg}} has column{?s} {.field {unknown}} that {?is/are} not in the images tibble.",
       call = call
     )
   }
-  if (length(keys) == 0 && nrow(center) != 1) {
-    cli::cli_abort("A {.arg center} data frame with several rows needs columns to match images on, e.g. {.field condition}.", call = call)
+  if (!several && length(keys) == 0 && nrow(center) != 1) {
+    cli::cli_abort("A {.arg {arg}} data frame with several rows needs columns to match images on, e.g. {.field condition}.", call = call)
+  }
+  if (several && (anyNA(center$x) || anyNA(center$y))) {
+    cli::cli_abort("{.arg {arg}} must not contain missing positions.", call = call)
   }
   if (center_units == "rel" && any(c(center$x, center$y) < 0 | c(center$x, center$y) > 1, na.rm = TRUE)) {
-    cli::cli_abort("Relative {.arg center} values must be between 0 and 1.", call = call)
+    cli::cli_abort("Relative {.arg {arg}} values must be between 0 and 1.", call = call)
   }
   invisible()
 }

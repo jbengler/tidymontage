@@ -10,10 +10,10 @@ tidymontage(
   y = NULL,
   ...,
   layout = "grid",
-  gap = 1,
-  width = 90,
-  height = 90,
-  units = c("mm", "cm", "in")
+  gap = NULL,
+  width = NULL,
+  height = NULL,
+  units = NULL
 )
 }
 \arguments{
@@ -31,10 +31,12 @@ too.}
 \item{layout}{\code{"grid"} (the default) or \code{"hero"}, or a layout created with
 \code{\link[=layout_grid]{layout_grid()}} or \code{\link[=layout_hero]{layout_hero()}}.}
 
-\item{gap}{Gap between panels in mm.}
+\item{gap}{Gap between panels in mm. \code{NULL} (the default) uses
+\code{\link[=tidymontage_options]{tidymontage_options()}}, or 1.}
 
 \item{width, height, units}{Size of the box the panel grid fits into, see
-\code{\link[=adjust_size]{adjust_size()}}. Default: 90 x 90 mm.}
+\code{\link[=adjust_size]{adjust_size()}}. \code{NULL} (the default) uses \code{\link[=tidymontage_options]{tidymontage_options()}}, or
+90 x 90 mm.}
 }
 \value{
 A \code{tidymontage} object. Printing it draws the montage.

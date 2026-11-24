@@ -4,15 +4,16 @@
 \alias{adjust_size}
 \title{Adjust the size of a montage}
 \usage{
-adjust_size(montage, width = 90, height = 90, units = c("mm", "cm", "in"))
+adjust_size(montage, width = NULL, height = NULL, units = NULL)
 }
 \arguments{
 \item{montage}{A \code{\link[=tidymontage]{tidymontage()}} object.}
 
 \item{width, height}{Size of the box the panel grid has to fit into. One of
-them can be \code{NA}.}
+them can be \code{NA}. \code{NULL} uses \code{\link[=tidymontage_options]{tidymontage_options()}}, or 90 mm.}
 
-\item{units}{Units of \code{width} and \code{height}: \code{"mm"}, \code{"cm"} or \code{"in"}.}
+\item{units}{Units of \code{width} and \code{height}: \code{"mm"}, \code{"cm"} or \code{"in"}.
+\code{NULL} uses \code{\link[=tidymontage_options]{tidymontage_options()}}, or \code{"mm"}.}
 }
 \value{
 The montage with the size step added.
@@ -27,7 +28,8 @@ outside of it.
 The panel grid is scaled to fit into a box of \code{width} x \code{height}, keeping
 the shape of the panels: depending on the layout, one side of the grid will
 be shorter than the box. Use \code{NA} for one of them to constrain only the
-other side. The default is a box of 90 x 90 mm.
+other side. The default is a box of 90 x 90 mm; change it for all
+montages with \code{\link[=tidymontage_options]{tidymontage_options()}}.
 }
 \examples{
 \dontrun{
