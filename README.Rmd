@@ -425,8 +425,8 @@ on dark panels and black on light ones:
 ```{r arrows}
 arrows <- tribble(
   ~mutant, ~x,   ~y,
-  "I56A",  0.50, 0.42,
-  "I56A",  0.56, 0.36,
+  "I56A",  0.45, 0.42,
+  "I56A",  0.56, 0.40,
   "L59A",  0.41, 0.50
 )
 
@@ -434,7 +434,7 @@ cells |>
   tidymontage(x = mutant, channel = c("Cy3", "Alexa Fluor 488", "merge")) |>
   adjust_colors(`Alexa Fluor 488` = "black") |>
   add_merge(Cy3, `Alexa Fluor 488`) |>
-  add_arrows(arrows)
+  add_arrows(arrows, size = 3)
 ```
 
 ### Finding exposure and positions
