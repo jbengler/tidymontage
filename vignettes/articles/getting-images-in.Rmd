@@ -31,7 +31,44 @@ OME-TIFF dialog.
 
 For whole folders, use `bfconvert`, the command line tool of
 [Bio-Formats](https://www.openmicroscopy.org/bio-formats/) (the library Fiji
-uses to read microscope files). It reads about 150 formats.
+uses to read microscope files). It reads about 150 formats and needs Java.
+There are several ways to get it; pick the first one that fits your computer.
+
+### Option 1: pixi, with Java included (recommended)
+
+[pixi](https://pixi.sh) installs command line tools into your user folder,
+without admin rights, on macOS, Linux and Windows. The Bio-Formats tools from
+[Bioconda](https://bioconda.github.io/recipes/bftools/README.html) bring their
+own Java, so there is nothing else to install.
+
+1. Install pixi, following the instructions on <https://pixi.sh>. On macOS and
+   Linux this is a single command in the terminal:
+
+   ```bash
+   curl -fsSL https://pixi.sh/install.sh | sh
+   ```
+
+   On Windows, run in PowerShell:
+
+   ```powershell
+   powershell -ExecutionPolicy ByPass -c "irm -useb https://pixi.sh/install.ps1 | iex"
+   ```
+
+2. Open a new terminal and install the Bio-Formats tools:
+
+   ```bash
+   pixi global install --channel conda-forge --channel bioconda bftools
+   ```
+
+`bfconvert` and `showinf` are now available in every terminal. If you already
+use conda or micromamba, the same package works there:
+
+```bash
+micromamba create -n bftools -c conda-forge -c bioconda bftools
+micromamba run -n bftools bfconvert ...
+```
+
+### Option 2: Bio-Formats with your own Java
 
 1. **Java**: Bio-Formats needs Java 11 or newer. If `java -version` doesn't
    work in a terminal, install it, e.g. from <https://adoptium.net>.
@@ -40,6 +77,41 @@ uses to read microscope files). It reads about 150 formats.
    and unzip it, e.g. to your home folder. The folder contains `bfconvert`
    and `showinf` (on Windows `bfconvert.bat` and `showinf.bat`). Add it to
    your `PATH`, or call the tools with their full path.
+
+This route gives you the newest Bio-Formats version; the packages of option 1
+can lag behind a little.
+
+### Option 3: containers (Docker, Podman, Apptainer)
+
+If you already work with containers, run `bfconvert` from the
+[BioContainers](https://biocontainers.pro) image, which is built from the
+same Bioconda package. Pick a version tag from
+<https://quay.io/repository/biocontainers/bftools?tab=tags> (the images have
+no `latest` tag) and mount the folder with your files:
+
+```bash
+docker run --rm -v "$PWD":/data -w /data quay.io/biocontainers/bftools:<tag> \
+  bfconvert -noflat -bigtiff -compression LZW -no-upgrade input.czi output.ome.tif
+```
+
+On computing clusters, where Docker is usually not available, Apptainer
+(formerly Singularity) runs the same image:
+
+```bash
+apptainer exec docker://quay.io/biocontainers/bftools:<tag> \
+  bfconvert -noflat -bigtiff -compression LZW -no-upgrade input.czi output.ome.tif
+```
+
+Containers are a good fit for pipelines and clusters. Just for converting
+files on a laptop, Docker is a much bigger installation than options 1 and 2.
+The images are built for Intel processors; on Apple silicon Macs they run in
+emulation and are slower.
+
+### Images on an OMERO server
+
+If your facility keeps images on an [OMERO](https://www.openmicroscopy.org/omero/)
+server, you may not need to convert anything yourself: OMERO can export
+images as OME-TIFF. Ask your facility how this is set up.
 
 ### The recommended command
 
