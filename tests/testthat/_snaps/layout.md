@@ -1,9 +1,9 @@
 # layouts explain what is wrong
 
     Code
-      montage_panels(adjust_layout(m, x = channel))
+      get_panels(adjust_layout(m, x = channel))
     Condition
-      Error in `montage_panels()`:
+      Error in `get_panels()`:
       ! 2 images would share one panel (channel = DAPI).
       i Each panel shows one image. Summarise z-slices or time points first, e.g. `summarise(img = max(img), .by = ...)`, or map another column such as filepath to `x` or `y`.
     Code
@@ -39,9 +39,9 @@
       Error in `tidymontage()`:
       ! `gap` must be a single non-negative number (mm).
     Code
-      montage_panels(tidymontage(example_images(), x = channel, channel = "RFP"))
+      get_panels(tidymontage(example_images(), x = channel, channel = "RFP"))
     Condition
-      Error in `montage_panels()`:
+      Error in `get_panels()`:
       ! No images left after choosing levels.
     Code
       layout_hero(hero = list(channel = "merge"))

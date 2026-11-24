@@ -13,7 +13,7 @@ m <- cells |>
   add_zoom(width = 15, center = zooms, box = "merge") |>
   layout_grid(x = c(view, mutant), y = channel)
 cat(format(m), sep = "\n")
-print(montage_panels(m) |> select(col, row, channel, view, mutant, px_xmin:px_ymax), n = 4)
+print(get_panels(m) |> select(col, row, channel, view, mutant, px_xmin:px_ymax), n = 4)
 t0 <- Sys.time(); save_montage(m, file.path(out, "crop_zoom.png"), width = 180); cat(format(Sys.time() - t0), "\n")
 
 # zoom without crop, zoom row below

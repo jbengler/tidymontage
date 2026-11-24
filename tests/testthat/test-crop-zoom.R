@@ -2,7 +2,7 @@
 # value at (row r, col c) = base + offset + (r - 1) * 10 + (c - 1).
 
 regions <- function(m) {
-  p <- montage_panels(m)
+  p <- get_panels(m)
   p[, c("channel", "view", "condition", "px_xmin", "px_xmax", "px_ymin", "px_ymax")]
 }
 
@@ -68,7 +68,7 @@ test_that("crop problems are explained", {
 
   images <- example_images() # fake images without pixel size
   expect_error(
-    montage_panels(adjust_layout(add_crop(tidymontage(images), width = 1), x = condition, y = channel)),
+    get_panels(adjust_layout(add_crop(tidymontage(images), width = 1), x = condition, y = channel)),
     "no known pixel size"
   )
 })
@@ -99,15 +99,15 @@ test_that("zooms are views that are placed automatically, mapped or chosen", {
   m <- tidymontage(local_montage_images()) |>
     add_crop(width = 0.6) |>
     add_zoom(width = 0.2, center = c(0.5, 0.5))
-  p <- montage_panels(adjust_layout(m, x = condition, y = channel))
+  p <- get_panels(adjust_layout(m, x = condition, y = channel))
   expect_equal(p$view[p$row == 1], c("crop", "zoom", "crop", "zoom"))
 
-  p <- montage_panels(adjust_layout(m, x = c(condition, view), y = channel))
+  p <- get_panels(adjust_layout(m, x = c(condition, view), y = channel))
   expect_equal(p$view[p$row == 1], c("crop", "zoom", "crop", "zoom"))
   zoom <- p[p$view == "zoom", ]
   expect_equal(unique(zoom$px_xmax - zoom$px_xmin), 1)
 
-  p <- montage_panels(adjust_layout(m, x = condition, y = channel, view = "zoom"))
+  p <- get_panels(adjust_layout(m, x = condition, y = channel, view = "zoom"))
   expect_equal(unique(p$view), "zoom")
 })
 
@@ -147,14 +147,14 @@ test_that("zooms outside the crop get no box, with a warning", {
   m <- tidymontage(local_montage_images()) |>
     add_crop(width = 0.4, center = c(0.3, 0.5)) |>
     add_zoom(width = 0.2, center = c(0.9, 0.5)) |> adjust_layout(x = c(view, condition), y = channel)
-  expect_warning(montage_panels(m), "lies outside")
+  expect_warning(get_panels(m), "lies outside")
 })
 
 test_that("crops and zooms must share the panel shape", {
   m <- tidymontage(local_montage_images()) |>
     add_crop(width = 0.6, height = 0.4) |>
     add_zoom(width = 0.2) |> adjust_layout(x = c(view, condition), y = channel)
-  expect_error(montage_panels(m), "same aspect ratio")
+  expect_error(get_panels(m), "same aspect ratio")
 })
 
 test_that("crop and zoom steps print as calls", {

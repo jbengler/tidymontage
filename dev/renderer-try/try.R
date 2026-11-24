@@ -5,7 +5,7 @@ cells <- read_images(list.files("demo_images", "\\.ome\\.tif$", full.names = TRU
 
 m <- tidymontage(cells) |> layout_grid(x = mutant, y = channel)
 print(format(m))
-print(montage_panels(m), width = 120)
+print(get_panels(m), width = 120)
 t0 <- Sys.time(); save_montage(m, file.path(out, "grid.png"), width = 90); cat("grid:", format(Sys.time() - t0), "\n")
 
 stack <- read_images("demo_images/DIV14Actin-01-Airyscan Processing-02.tif") |>

@@ -19,7 +19,7 @@ test_that("black channels are drawn inverted on white, others on black", {
   m <- tidymontage(local_montage_images(), x = condition) |>
     adjust_colors(C1 = "black") |>
     adjust_exposure(min = 0, max = "p100")
-  p <- montage_panels(m)
+  p <- get_panels(m)
   expect_equal(p$background[p$channel == "C1"], c("white", "white"))
   expect_equal(p$background[p$channel == "C2"], c("black", "black"))
 

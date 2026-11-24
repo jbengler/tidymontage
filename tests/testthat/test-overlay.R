@@ -4,7 +4,7 @@ test_that("an overlay is a virtual channel next to channels and merges", {
   p <- tidymontage(local_montage_images(), x = condition) |>
     add_merge(C1, C2) |>
     add_overlay(C1, C2, name = "overlap") |>
-    montage_panels()
+    get_panels()
   ctrl <- p[p$condition == "ctrl", ]
   expect_equal(ctrl$channel, c("C1", "C2", "merge", "overlap"))
   expect_equal(ctrl$merge, c(FALSE, FALSE, TRUE, FALSE))
@@ -37,7 +37,7 @@ test_that("a threshold hides weak overlap, a black overlay is inverted", {
   expect_gt(red[8, 10], 200)
 
   m <- tidymontage(images, x = condition, channel = "o") |> add_overlay(C1, C2, name = "o", color = "black")
-  expect_equal(unique(montage_panels(m)$background), "white")
+  expect_equal(unique(get_panels(m)$background), "white")
 })
 
 test_that("overlays get a legend entry with their members", {

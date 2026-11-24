@@ -3,7 +3,7 @@
 test_that("preview_exposure() shows a min x max grid of one image", {
   m <- tidymontage(local_montage_images(), x = condition)
   expect_message(p <- preview_exposure(m, "C1"), "the brightest of 2 images")
-  panels <- montage_panels(p)
+  panels <- get_panels(p)
   expect_equal(nrow(panels), 25)
   expect_equal(max(panels$col), 5)
   expect_equal(max(panels$row), 5)
@@ -91,12 +91,12 @@ test_that("preview_positions() shows one image per block with relative axes", {
 test_that("preview_positions() picks images and falls back to files", {
   m <- tidymontage(local_montage_images(), x = condition)
   p <- preview_positions(m, condition == "ko")
-  expect_equal(montage_panels(p)$condition, "ko")
-  expect_equal(montage_panels(p)$channel, "C1")
+  expect_equal(get_panels(p)$condition, "ko")
+  expect_equal(get_panels(p)$channel, "C1")
 
   images <- local_montage_images()
   p <- preview_positions(tidymontage(images, channel = "C2"), condition == "ctrl")
-  expect_equal(montage_panels(p)$file, "ctrl.tif")
+  expect_equal(get_panels(p)$file, "ctrl.tif")
   expect_error(preview_positions(m, condition == "none"), "no images")
 })
 

@@ -40,5 +40,5 @@ reference:
 - contents:
   - panel
   - starts_with("layout_")
-  - starts_with("montage_")
+  - starts_with("get_")
   - starts_with("is_")

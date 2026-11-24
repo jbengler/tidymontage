@@ -259,7 +259,7 @@ open_device <- function(filename, width, height, dpi, ..., call = rlang::caller_
 #' @param montage A [tidymontage()] object.
 #' @returns A tibble with one row per panel.
 #' @export
-montage_panels <- function(montage) {
+get_panels <- function(montage) {
   check_tidymontage(montage)
   space <- montage_layout_space(montage, call = rlang::current_env())
   p <- space$panels

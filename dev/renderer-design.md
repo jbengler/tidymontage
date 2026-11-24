@@ -95,7 +95,7 @@ Switching the layout keeps the mapping.
   the channels shown (merge members, not merges), outside the panels.
 - Geometry: both are grids of cells whose size is linear in one free size;
   the largest that fits the box is used.
-- `montage_panels(m)`: panel rectangles (mm), roles, source regions.
+- `get_panels(m)`: panel rectangles (mm), roles, source regions.
 
 ## Naming decisions
 

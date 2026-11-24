@@ -7,7 +7,7 @@ hero_montage <- function(images, ...) {
 
 test_that("the hero shows the merge with the zoomed channels beside it", {
   # without side labels, the panels and gaps fill the 90 mm box exactly
-  p <- montage_panels(hero_montage(local_montage_images(), labels = FALSE))
+  p <- get_panels(hero_montage(local_montage_images(), labels = FALSE))
   expect_equal(p$role, rep(c("hero", "side", "side"), 2))
   expect_equal(p$channel, rep(c("merge", "C1", "C2"), 2))
   expect_equal(p$view, rep(c("crop", "zoom", "zoom"), 2))
@@ -26,26 +26,26 @@ test_that("the hero shows the merge with the zoomed channels beside it", {
 })
 
 test_that("side panels can go below or left of the hero", {
-  p <- montage_panels(hero_montage(local_montage_images(), position = "bottom", labels = FALSE))
+  p <- get_panels(hero_montage(local_montage_images(), position = "bottom", labels = FALSE))
   hero <- p[p$condition == "ctrl" & p$role == "hero", ]
   side <- p[p$condition == "ctrl" & p$role == "side", ]
   expect_equal(unique(side$ymin), hero$ymax + 1)
   expect_equal(max(side$xmax) - min(side$xmin), hero$xmax - hero$xmin)
 
-  p <- montage_panels(hero_montage(local_montage_images(), position = "left", labels = FALSE))
+  p <- get_panels(hero_montage(local_montage_images(), position = "left", labels = FALSE))
   hero <- p[p$condition == "ctrl" & p$role == "hero", ]
   side <- p[p$condition == "ctrl" & p$role == "side", ]
   expect_equal(hero$xmin, side$xmax[1] + 1)
 })
 
 test_that("hero and side panels can be chosen with panel()", {
-  p <- montage_panels(hero_montage(local_montage_images(), hero = panel(channel = "C1", view = "crop"), side = panel(channel = c("C2", "merge"), view = "zoom")))
+  p <- get_panels(hero_montage(local_montage_images(), hero = panel(channel = "C1", view = "crop"), side = panel(channel = c("C2", "merge"), view = "zoom")))
   expect_equal(p$channel[p$condition == "ctrl"], c("C1", "C2", "merge"))
 })
 
 test_that("without merge or zoom, the hero uses the first channel and the main view", {
   m <- tidymontage(local_montage_images(), x = condition, layout = "hero")
-  p <- montage_panels(m)
+  p <- get_panels(m)
   expect_equal(p$channel[p$role == "hero"], c("C1", "C1"))
   expect_equal(unique(p$view), "full")
   expect_equal(p$channel[p$role == "side" & p$condition == "ctrl"], c("C1", "C2"))
@@ -53,19 +53,19 @@ test_that("without merge or zoom, the hero uses the first channel and the main v
 
 test_that("switching layouts keeps the mapping, channel and view in x/y are ignored", {
   m <- tidymontage(local_montage_images(), x = c(condition, channel)) |> add_merge(C1, C2)
-  expect_message(p <- montage_panels(adjust_layout(m, layout = "hero")), "arranges .*channel")
+  expect_message(p <- get_panels(adjust_layout(m, layout = "hero")), "arranges .*channel")
   expect_equal(max(p$col), 2)
 })
 
 test_that("the hero layout explains what is wrong", {
   m <- tidymontage(local_montage_images(), layout = "hero")
-  expect_error(montage_panels(m), "exactly one hero panel")
+  expect_error(get_panels(m), "exactly one hero panel")
   expect_error(
-    montage_panels(add_merge(add_merge(tidymontage(local_montage_images(), x = condition, layout = "hero"), C1, C2), C1, C2, name = "m2")),
+    get_panels(add_merge(add_merge(tidymontage(local_montage_images(), x = condition, layout = "hero"), C1, C2), C1, C2, name = "m2")),
     "can't choose between the merges"
   )
   expect_error(
-    montage_panels(hero_montage(local_montage_images(), side = panel(channel = "C9"))),
+    get_panels(hero_montage(local_montage_images(), side = panel(channel = "C9"))),
     "no side panels"
   )
 })

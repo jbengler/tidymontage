@@ -557,12 +557,12 @@ cells |>
 
 ### Recipes and exact sizes
 
-The montage keeps its recipe, and `montage_panels()` shows the layout in mm
+The montage keeps its recipe, and `get_panels()` shows the layout in mm
 without reading any pixels:
 
 ```{r montage-recipe}
 cat(format(montage), sep = "\n")
-montage_panels(montage)
+get_panels(montage)
 ```
 
 Like plots in tidyplots, montages have a **fixed physical size**: by default,
@@ -585,12 +585,12 @@ doesn't:
 
 ```{r layout-errors, error = TRUE}
 # two mutants, but only channels are mapped
-cells |> tidymontage(x = channel) |> montage_panels()
+cells |> tidymontage(x = channel) |> get_panels()
 
 # levels can be chosen and ordered
 cells |>
   tidymontage(x = mutant, channel = "DAPI") |>
-  montage_panels()
+  get_panels()
 
 # unlinking display ranges across channels is possible, but flagged
 tidymontage(cells, x = mutant) |> adjust_exposure(.by = mutant)

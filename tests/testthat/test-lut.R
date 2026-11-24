@@ -35,7 +35,7 @@ test_that("a LUT channel is drawn through its map, on its first colour", {
   m <- tidymontage(local_montage_images(), x = condition, channel = "C1") |>
     adjust_colors(C1 = lut(c("blue", "red"))) |>
     adjust_exposure(min = 0, max = 179)
-  p <- montage_panels(m)
+  p <- get_panels(m)
   expect_equal(p$background, c("#0000FF", "#0000FF"))
 
   b <- montage_build(m, dpi = 72)

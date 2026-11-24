@@ -22,7 +22,7 @@ test_that("merges print as calls", {
 test_that("a merge is a virtual channel in the layout", {
   p <- tidymontage(example_images()) |>
     add_merge(DAPI, GFP) |> adjust_layout(x = channel, y = condition) |>
-    montage_panels()
+    get_panels()
   expect_equal(p$channel, rep(c("DAPI", "GFP", "merge"), 2))
   expect_equal(p$merge, rep(c(FALSE, FALSE, TRUE), 2))
   expect_equal(p$condition, rep(c("ctrl", "ko"), each = 3))
@@ -32,7 +32,7 @@ test_that("a merge is a virtual channel in the layout", {
 test_that("merge members don't need their own panels", {
   p <- tidymontage(example_images()) |>
     add_merge(DAPI, GFP) |> adjust_layout(x = condition, channel = "merge") |>
-    montage_panels()
+    get_panels()
   expect_equal(p$channel, c("merge", "merge"))
   expect_equal(p$condition, c("ctrl", "ko"))
 })
@@ -43,15 +43,15 @@ test_that("merges follow columns that are determined by the channel", {
   images$target <- factor(images$target, levels = c("protein", "nuclei"))
   p <- tidymontage(images) |>
     add_merge(DAPI, GFP, name = "overlay") |> adjust_layout(x = condition, y = target) |>
-    montage_panels()
+    get_panels()
   expect_equal(as.character(p$target), rep(c("protein", "nuclei", "overlay"), each = 2))
 })
 
 test_that("merges need one image of each member per panel", {
   m <- tidymontage(example_images()) |> add_merge(DAPI, GFP)
   expect_snapshot(error = TRUE, {
-    montage_panels(adjust_layout(m, x = channel))
-    montage_panels(adjust_layout(m, x = channel, y = condition, condition = "ko") |>
+    get_panels(adjust_layout(m, x = channel))
+    get_panels(adjust_layout(m, x = channel, y = condition, condition = "ko") |>
       (\(x) {x$images <- x$images[-4, ]; x})())
   })
 })

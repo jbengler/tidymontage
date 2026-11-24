@@ -35,17 +35,17 @@
 # merges need one image of each member per panel
 
     Code
-      montage_panels(adjust_layout(m, x = channel))
+      get_panels(adjust_layout(m, x = channel))
     Condition
-      Error in `montage_panels()`:
+      Error in `get_panels()`:
       ! Merge "merge" would combine several "DAPI" and "GFP" images.
       i Map another column, such as filepath, to `x` or `y`, or summarise z-slices first.
     Code
-      montage_panels((function(x) {
+      get_panels((function(x) {
         x$images <- x$images[-4, ]
         x
       })(adjust_layout(m, x = channel, y = condition, condition = "ko")))
     Condition
-      Error in `montage_panels()`:
+      Error in `get_panels()`:
       ! Merge "merge" needs "DAPI" and "GFP", but "GFP" is missing (condition = ko).
 
