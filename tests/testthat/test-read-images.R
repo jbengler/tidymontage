@@ -257,3 +257,9 @@ test_that("channel_labels() prefers unique fluors, then names", {
   expect_equal(channel_labels(c("a", "b"), c("GFP", "GFP")), c("a", "b"))
   expect_equal(channel_labels(c(NA, "b"), c(NA, "GFP")), c("C1", "C2"))
 })
+
+test_that("read_images() points microscope files to the conversion guide", {
+  dir <- withr::local_tempdir()
+  file.create(file.path(dir, "a.czi"))
+  expect_error(read_images(file.path(dir, "a.czi")), "getting-images-in")
+})

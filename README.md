@@ -15,8 +15,8 @@ images goes in, montage components are added with pipeable verbs, and a
 ggplot comes out.
 
 tidymontage is in early development. Reading images, processing them
-with dplyr, and drawing grids of channels, merges, crops and zooms with
-labels and scale bars works; the hero layout is next.
+with dplyr, and building montages with merges, overlays, crops, zooms,
+grid and hero layouts, colour legends and scale bars works.
 
 ## Installation
 
@@ -28,18 +28,27 @@ You can install the development version of tidymontage from
 pak::pak("jbengler/tidymontage")
 ```
 
-## The data model
+## Getting started
 
 The examples below use the microscope exports in `demo_images/`. They
 are not part of the package (too large), so run them from a local
 checkout that has the folder.
 
-### One row per image
+### Microscope files
 
-`read_images()` takes files or directories and returns a long tibble
-with one row per image: per file, channel, z-slice and time point. The
-`img` column holds lazy references to **greyscale** images; no pixels
-are read at this point.
+tidymontage reads TIFF and OME-TIFF. Convert files in microscope formats
+(CZI, ND2, LIF, OIR, VSI, …) to OME-TIFF first, with ZEN, Fiji or the
+Bio-Formats command line tool `bfconvert`; the article [Getting your
+images
+in](https://jbengler.github.io/tidymontage/articles/getting-images-in.html)
+shows how, including a script for whole folders.
+
+### A first montage
+
+Read the images, describe the experiment with dplyr, and hand them to
+`tidymontage()`. Here two cells, one per mutant, become one column each,
+with their channels as rows. Display ranges are **linked per channel**,
+so the brightness of both mutants can be compared:
 
 ``` r
 library(tidymontage)
@@ -54,6 +63,29 @@ library(dplyr)
 #>     intersect, setdiff, setequal, union
 library(tidyr)
 
+cells <- read_images(list.files("demo_images", "\\.ome\\.tif$", full.names = TRUE)) |>
+  mutate(mutant = if_else(grepl("I56A", filepath), "I56A", "L59A"))
+
+cells |>
+  tidymontage(x = mutant)
+```
+
+<img src="man/figures/README-first.png" alt="" width="243" />
+
+The rest of this README first looks at the data model, the tibble of
+images, and then at what `tidymontage()` can do with it.
+
+## The data model
+
+### One row per image
+
+`read_images()` takes files or directories and returns a long tibble
+with one row per image: per file, channel, z-slice and time point. The
+`img` column holds lazy references to **greyscale** images; no pixels
+are read at this point. Colours are only applied when a montage is
+drawn.
+
+``` r
 images <- read_images("demo_images")
 images
 #> # A tibble: 46 × 20
@@ -108,55 +140,32 @@ images |>
 #> 4 Hoechst 33258   H3258-T4     #0000FF   2024      7     0.0707    1.8
 ```
 
-### A helper to look at images
+### Select images with `filter()`
 
-For looking at the data model, here is a small `peek()` helper. It reads
-the pixels of the `img` column (with the internal `img_pixels()`), tints
-each image with its channel colour and shows them side by side. Colour
-is only applied at display time: the tibble itself only holds greyscale
-images. (Unlike the montage below, `peek()` scales every image on its
-own, so brightness is not comparable between panels.)
-
-``` r
-peek <- function(data, label = channel, step = 4) {
-  labels <- as.character(rlang::eval_tidy(rlang::enquo(label), data))
-  colors <- if ("color" %in% names(data)) data$color else rep("#FFFFFF", nrow(data))
-  pixels <- tidymontage:::img_pixels(data$img)
-  op <- par(mfrow = c(1, length(pixels)), mar = c(0, 0, 1.5, 0))
-  on.exit(par(op))
-  for (i in seq_along(pixels)) {
-    x <- pixels[[i]][seq(1, nrow(pixels[[i]]), step), seq(1, ncol(pixels[[i]]), step)]
-    v <- pmin(x / quantile(x, 0.999), 1)
-    rgb <- grDevices::col2rgb(colors[i])[, 1] / 255
-    plot(as.raster(matrix(grDevices::rgb(v * rgb[1], v * rgb[2], v * rgb[3]), nrow(x))))
-    title(labels[i], col.main = "grey30", cex.main = 0.9)
-  }
-}
-```
-
-Every row is an image you can look at:
+Every row is an image, and any selection of rows can be shown with
+`tidymontage()`. Here four z-slices of one channel, with the slices as
+columns. All slices share one display range, so the dimmer slices really
+have less signal:
 
 ``` r
 stack <- images |> filter(grepl("Airyscan", filepath))
 
 stack |>
   filter(channel == "Alexa Fluor 488", z %in% c(1, 3, 5, 7)) |>
-  peek(label = paste("z =", z))
+  tidymontage(x = z)
 ```
 
-![](man/figures/README-peek-rows-1.png)<!-- -->
-
-### Select images with `filter()`
+<img src="man/figures/README-zslices.png" alt="" width="340" />
 
 A single z-slice of all channels:
 
 ``` r
 stack |>
   filter(z == 4) |>
-  peek()
+  tidymontage()
 ```
 
-![](man/figures/README-filter-slice-1.png)<!-- -->
+<img src="man/figures/README-filter-slice.png" alt="" width="340" />
 
 ### Project with `summarise()`
 
@@ -178,10 +187,10 @@ projected
 ```
 
 ``` r
-peek(projected)
+tidymontage(projected)
 ```
 
-![](man/figures/README-project-peek-1.png)<!-- -->
+<img src="man/figures/README-project-montage.png" alt="" width="340" />
 
 Projections can be restricted to part of the stack, just by filtering
 first:
@@ -206,28 +215,33 @@ into rows:
 ``` r
 projections <- stack |>
   filter(channel == "Hoechst 33258") |>
-  summarise(max = max(img), mean = mean(img), min = min(img), .by = c(channel, color)) |>
+  summarise(max = max(img), mean = mean(img), min = min(img), .by = c(filepath, channel, color)) |>
   pivot_longer(c(max, mean, min), names_to = "projection", values_to = "img")
 projections
-#> # A tibble: 3 × 4
-#>   channel       color   projection       img
-#>   <chr>         <chr>   <chr>          <img>
-#> 1 Hoechst 33258 #0000FF max         max of 7
-#> 2 Hoechst 33258 #0000FF mean       mean of 7
-#> 3 Hoechst 33258 #0000FF min         min of 7
+#> # A tibble: 3 × 5
+#>   filepath                                             channel       color   projection       img
+#>   <chr>                                                <chr>         <chr>   <chr>          <img>
+#> 1 demo_images/DIV14Actin-01-Airyscan Processing-02.tif Hoechst 33258 #0000FF max         max of 7
+#> 2 demo_images/DIV14Actin-01-Airyscan Processing-02.tif Hoechst 33258 #0000FF mean       mean of 7
+#> 3 demo_images/DIV14Actin-01-Airyscan Processing-02.tif Hoechst 33258 #0000FF min         min of 7
 ```
 
 ``` r
-peek(projections, label = projection)
+tidymontage(projections, x = projection)
 ```
 
-![](man/figures/README-compare-peek-1.png)<!-- -->
+<img src="man/figures/README-compare-montage.png" alt="" width="340" />
+
+All three projections are images of the same channel, so they share one
+display range: the minimum projection really is that dim. To stretch
+each one on its own, unlink them on purpose with
+`adjust_exposure(.by = c(channel, projection))`.
 
 ### Describe the experiment with `mutate()` and joins
 
-Conditions, targets or anything else are ordinary columns. Here the
-mutant is derived from the file name, and the stained protein comes from
-a lookup table:
+Conditions, targets or anything else are ordinary columns. The mutant
+came from the file name above; the stained protein comes from a lookup
+table:
 
 ``` r
 targets <- tribble(
@@ -237,9 +251,7 @@ targets <- tribble(
   "DAPI",            "nuclei"
 )
 
-cells <- images |>
-  filter(grepl("\\.ome\\.tif$", filepath)) |>
-  mutate(mutant = if_else(grepl("I56A", filepath), "I56A", "L59A")) |>
+cells <- cells |>
   left_join(targets, by = "channel")
 
 cells |> select(mutant, channel, target, color, img)
@@ -254,22 +266,25 @@ cells |> select(mutant, channel, target, color, img)
 #> 6 L59A   DAPI            nuclei    #FFFFFF page 3
 ```
 
+Columns like `target` can be used in the montage right away:
+
 ``` r
 cells |>
   filter(target != "nuclei") |>
-  peek(label = paste(mutant, target))
+  tidymontage(x = mutant, y = target)
 ```
 
-![](man/figures/README-describe-peek-1.png)<!-- -->
+<img src="man/figures/README-describe-montage.png" alt="" width="358" />
 
-Changing a colour is a `mutate()` as well. Nothing is re-read: colour is
-only used when images are displayed.
+The `color` column holds the default colour of each image, so changing
+it is a `mutate()` as well. Nothing is re-read: colour is only used when
+images are drawn. (Within a montage, `adjust_colors()` does the same.)
 
 ``` r
 cells |>
   filter(mutant == "I56A") |>
   mutate(color = case_match(channel, "Cy3" ~ "#E69F00", "Alexa Fluor 488" ~ "#56B4E9", "DAPI" ~ "#FFFFFF")) |>
-  peek(label = target)
+  tidymontage(x = target)
 #> Warning: There was 1 warning in `mutate()`.
 #> ℹ In argument: `color = case_match(...)`.
 #> Caused by warning:
@@ -277,7 +292,7 @@ cells |>
 #> ℹ Please use `recode_values()` instead.
 ```
 
-![](man/figures/README-recolor-1.png)<!-- -->
+<img src="man/figures/README-recolor.png" alt="" width="340" />
 
 ### Things that are refused
 
@@ -309,21 +324,25 @@ images |> summarise(img = max(img), .by = channel_index)
 
 ## Build a montage
 
-The processed tibble goes into `tidymontage()`. Like `tidyplot()` in
-tidyplots, it takes the mapping: columns mapped to `x` and `y` (here
-`mutant`) arrange blocks of panels, and the **layout** arranges the
-channels and views within them. The default grid puts the channels on
-the free axis. Printing the montage draws it.
+Like `tidyplot()` in tidyplots, `tidymontage()` takes the mapping:
+columns mapped to `x` and `y` (here `mutant`) arrange blocks of panels,
+and the **layout** arranges the channels and views within them. The
+default grid puts the channels on the free axis:
 
 ``` r
 cells |>
   tidymontage(x = mutant)
+```
+
+<img src="man/figures/README-montage-grid.png" alt="" width="243" />
+
+``` r
 
 cells |>
   tidymontage(y = mutant)
 ```
 
-<img src="man/figures/README-montage-grid.png" alt="" width="358" />
+<img src="man/figures/README-montage-grid-2.png" alt="" width="358" />
 
 From there on, `add_*()` and `adjust_*()` verbs decide everything about
 display: merges, colours, display ranges, crops, zooms and scale bars.

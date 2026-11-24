@@ -84,7 +84,10 @@ expand_image_paths <- function(paths, call = rlang::caller_env()) {
     cli::cli_abort(
       c(
         "Only TIFF files ({.file .tif}, {.file .tiff}, {.file .ome.tif}) are supported.",
-        "x" = "Unsupported: {.file {unsupported}}."
+        "x" = "Unsupported: {.file {unsupported}}.",
+        if (any(tolower(tools::file_ext(unsupported)) %in% microscope_extensions)) {
+          c("i" = "Convert microscope files (CZI, ND2, LIF, ...) to OME-TIFF first, see {.url https://jbengler.github.io/tidymontage/articles/getting-images-in.html}.")
+        }
       ),
       call = call
     )
@@ -356,3 +359,10 @@ to_micron <- function(value, unit) {
   )
   value * factor
 }
+
+# Common microscope formats; read_images() points them to the conversion guide.
+microscope_extensions <- c(
+  "czi", "nd2", "lif", "lof", "liff", "lsm", "oir", "oib", "oif", "vsi", "ims", "lei",
+  "zvi", "dv", "r3d", "ics", "ids", "mvd2", "sld", "stk", "nd", "obf", "msr", "svs",
+  "ndpi", "scn", "fli"
+)

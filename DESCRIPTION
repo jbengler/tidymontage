@@ -23,6 +23,7 @@ Imports:
     rlang,
     tibble,
     tiff,
+    tools,
     utils,
     vctrs,
     xml2
