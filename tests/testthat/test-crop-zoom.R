@@ -177,5 +177,5 @@ test_that("crops and zooms render consistently", {
     add_merge(C1, C2) |>
     add_crop(width = 0.6, center = c(0.4, 0.5)) |>
     add_zoom(width = 0.2, center = c(0.45, 0.5)) |> adjust_layout(x = c(view, condition), y = channel)
-  vdiffr::expect_doppelganger("crop and zoom", autoplot(m, dpi = 72))
+  vdiffr::expect_doppelganger("crop and zoom", drawing(m))
 })

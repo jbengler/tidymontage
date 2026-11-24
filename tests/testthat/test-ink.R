@@ -59,9 +59,8 @@ test_that("zoom boxes and frames contrast with white panels", {
   s <- montage_layout_space(m, call = NULL)
   expect_equal(sort(unique(s$boxes$color)), c("black", "white"))
 
-  p <- autoplot(m, dpi = 72)
-  frame_colours <- unlist(lapply(p$layers, function(l) if (inherits(l$geom, "GeomRect")) l$aes_params$colour))
-  expect_true("black" %in% frame_colours)
+  el <- montage_elements(m)
+  expect_equal(unique(el[["frames"]]$gp$col), "black")
 })
 
 test_that("the legend leaves out black channels and lists their merge colours", {
@@ -124,5 +123,5 @@ test_that("ink montages render consistently", {
     adjust_colors(C1 = "black", C2 = "black") |>
     add_merge(C1, C2, colors = c(C2 = "red")) |>
     add_color_legend()
-  vdiffr::expect_doppelganger("ink montage", autoplot(m, dpi = 72))
+  vdiffr::expect_doppelganger("ink montage", drawing(m))
 })

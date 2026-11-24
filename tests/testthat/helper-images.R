@@ -41,3 +41,15 @@ unpack_rgb <- function(r) {
   )
 }
 
+
+# A function that draws a montage, for vdiffr snapshots.
+drawing <- function(montage) {
+  force(montage)
+  function() print(montage)
+}
+
+# The drawn elements of a montage, by name.
+montage_elements <- function(montage, dpi = 72) {
+  grob <- montage_grob(montage_build(montage, dpi = dpi))
+  stats::setNames(grob$children, vapply(grob$children, function(g) g$name, character(1)))
+}

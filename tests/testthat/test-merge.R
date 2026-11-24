@@ -96,5 +96,5 @@ test_that("merges render consistently", {
   m <- tidymontage(local_montage_images()) |>
     adjust_exposure(min = 0, max = "p100") |>
     add_merge(C1, C2) |> adjust_layout(x = channel, y = condition)
-  vdiffr::expect_doppelganger("channels and merge", autoplot(m, dpi = 72))
+  vdiffr::expect_doppelganger("channels and merge", drawing(m))
 })

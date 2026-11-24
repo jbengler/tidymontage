@@ -45,7 +45,16 @@ test_that("too many panels for the box are refused", {
   expect_error(montage_panels(m), "too small")
 })
 
-test_that("autoplot() records the physical size", {
-  p <- autoplot(adjust_layout(tidymontage(local_montage_images()), x = condition, y = channel), dpi = 72)
-  expect_equal(attr(p, "size_mm")[["width"]], 90 + strip_mm(7))
+test_that("the montage gtable has the physical size, with the image grid as panel", {
+  m <- adjust_layout(tidymontage(local_montage_images()), x = condition, y = channel)
+  gt <- montage_gtable(m)
+  expect_s3_class(gt, "gtable")
+  expect_equal(gtable_size_mm(gt)[["width"]], 90 + strip_mm(7))
+  widths <- as.numeric(gt$widths)
+  heights <- as.numeric(gt$heights)
+  # lead: row headers, span: the image grid, trail: nothing
+  expect_equal(widths, c(strip_mm(7), 90, 0))
+  expect_equal(heights[1], strip_mm(7))
+  panel <- gt$layout[gt$layout$name == "panel", ]
+  expect_equal(c(panel$t, panel$l), c(2, 2))
 })

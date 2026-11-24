@@ -158,5 +158,5 @@ test_that("hero montages render consistently", {
   skip_on_cran()
   skip_if_not_installed("vdiffr")
   m <- hero_montage(local_montage_images()) |> adjust_exposure(min = 0, max = "p100") |> add_scale_bar()
-  vdiffr::expect_doppelganger("hero layout", autoplot(m, dpi = 72))
+  vdiffr::expect_doppelganger("hero layout", drawing(m))
 })

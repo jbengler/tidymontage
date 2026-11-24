@@ -103,3 +103,11 @@ Switching the layout keeps the mapping.
 - `panel()` helper for picking panels in `layout_hero()`.
 - Themes in the tidyplots sense (pure style: background, fonts, gaps, scale
   bar style, palette) are still to come, separate from layouts.
+
+## Rendering (since 2026-11-24)
+
+A montage renders to its own gtable (grid only, no ggplot2): 3 x 3 tracks,
+the middle ones are the image grid ("panel"), the outer ones decoration.
+`print()` and `save_montage()` draw it at exact size (bitmaps via ragg if
+installed); pixels are read lazily in `makeContent()`. tidylayouts can align
+montages on their image grid. See `dev/gtable-spike/`.

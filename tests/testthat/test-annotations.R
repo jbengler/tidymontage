@@ -123,17 +123,13 @@ test_that("annotation steps print only non-default arguments", {
 
 test_that("scale bars have an outline and a halo unless switched off", {
   m <- tidymontage(local_montage_images()) |> adjust_layout(x = condition, y = channel)
-  layers <- function(m) {
-    p <- autoplot(m, dpi = 72)
-    vapply(p$layers, function(l) class(l$geom)[1], character(1))
-  }
-  with_outline <- layers(add_scale_bar(m))
-  without <- layers(add_scale_bar(m, outline = NA))
+  with_outline <- montage_elements(add_scale_bar(m))
+  without <- montage_elements(add_scale_bar(m, outline = NA))
   # 12 halo copies of the label
-  expect_equal(sum(with_outline == "GeomText") - sum(without == "GeomText"), 12)
-  bar <- autoplot(add_scale_bar(m), dpi = 72)$layers
-  rects <- Filter(function(l) inherits(l$geom, "GeomRect"), bar)
-  expect_equal(rects[[length(rects)]]$aes_params$colour, "black")
+  expect_equal(sum(startsWith(names(with_outline), "scale-bar-halo")), 12)
+  expect_equal(sum(startsWith(names(without), "scale-bar-halo")), 0)
+  expect_equal(with_outline[["scale-bars"]]$gp$col, "black")
+  expect_true(is.na(without[["scale-bars"]]$gp$col))
 })
 
 test_that("annotated montages render consistently", {
@@ -145,5 +141,5 @@ test_that("annotated montages render consistently", {
     add_crop(width = 0.6) |>
     add_zoom(width = 0.3) |> adjust_layout(x = c(view, condition), y = channel) |>
     add_scale_bar()
-  vdiffr::expect_doppelganger("annotated montage", autoplot(m, dpi = 72))
+  vdiffr::expect_doppelganger("annotated montage", drawing(m))
 })

@@ -153,7 +153,7 @@ legend_layout <- function(items, lg, area) {
   d <- legend_dims(items, lg, area$xmax - area$xmin)
   n <- nrow(items)
   if (lg$position == "right") {
-    x0 <- rep(area$xmax + 2, n)
+    x0 <- rep((area$right_edge %||% area$xmax) + 2, n)
     y_center <- (area$ymin + area$ymax) / 2 - d$height / 2 + (seq_len(n) - 0.5) * d$line
   } else {
     # each row is centred over the panels
@@ -163,7 +163,7 @@ legend_layout <- function(items, lg, area) {
       start <- (area$xmin + area$xmax) / 2 - d$row_w[r] / 2
       x0[idx] <- start + c(0, cumsum(d$item_w[idx] + d$spacing))[seq_along(idx)]
     }
-    first <- if (lg$position == "top") 2 + d$swatch / 2 else area$ymax + 2 + d$swatch / 2
+    first <- if (lg$position == "top") 2 + d$swatch / 2 else (area$bottom_edge %||% area$ymax) + 2 + d$swatch / 2
     y_center <- first + (d$row - 1) * d$line
   }
   out <- data.frame(

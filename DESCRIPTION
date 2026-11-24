@@ -18,8 +18,8 @@ Depends:
     R (>= 4.1.0)
 Imports:
     cli,
-    ggplot2,
     grid,
+    gtable,
     rlang,
     tibble,
     tiff,
@@ -30,6 +30,7 @@ Imports:
 Suggests:
     dplyr,
     png,
+    ragg,
     testthat (>= 3.0.0),
     tidyr,
     vdiffr,

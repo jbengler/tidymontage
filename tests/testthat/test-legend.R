@@ -75,5 +75,21 @@ test_that("legends render consistently", {
     adjust_exposure(min = 0, max = "p100") |>
     add_merge(C1, C2) |>
     add_color_legend("bottom")
-  vdiffr::expect_doppelganger("hero with legend", autoplot(m, dpi = 72))
+  vdiffr::expect_doppelganger("hero with legend", drawing(m))
+})
+
+test_that("legends go below or beside hero side labels, not on top of them", {
+  for (pos in c("bottom", "right")) {
+    m <- tidymontage(local_montage_images(), x = condition, layout = layout_hero(position = pos)) |>
+      add_merge(C1, C2) |>
+      add_color_legend(pos)
+    s <- montage_layout_space(m, call = NULL)
+    sl <- s$side_labels
+    if (pos == "bottom") {
+      label_bottom <- max(sl$y) + 7 * 0.3528 * 1.25
+      expect_gte(min(s$legend$ymin), label_bottom)
+    } else {
+      expect_gt(min(s$legend$xmin), max(sl$x) + 7 * 0.3528 * 1.25 - 1e-6)
+    }
+  }
 })

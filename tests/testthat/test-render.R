@@ -53,6 +53,28 @@ test_that("montages render consistently", {
   images <- local_montage_images()
   m <- tidymontage(images) |>
     adjust_exposure(min = 0, max = "p100") |> adjust_layout(x = condition, y = channel)
-  vdiffr::expect_doppelganger("grid of two conditions", autoplot(m, dpi = 72))
-  vdiffr::expect_doppelganger("row of channels", autoplot(adjust_layout(m, x = channel, y = NULL, condition = "ko"), dpi = 72))
+  vdiffr::expect_doppelganger("grid of two conditions", drawing(m))
+  vdiffr::expect_doppelganger("row of channels", drawing(adjust_layout(m, x = channel, y = NULL, condition = "ko")))
+})
+
+test_that("save_montage() writes every supported format, and refuses others", {
+  m <- tidymontage(local_montage_images(), x = condition, width = 30, height = NA)
+  dir <- withr::local_tempdir()
+  devices <- grDevices::dev.list()
+  for (ext in c("png", "pdf", "svg", "tif", "jpg")) {
+    path <- file.path(dir, paste0("montage.", ext))
+    expect_message(save_montage(m, path, dpi = 72), "Saved")
+    expect_gt(file.size(path), 0)
+  }
+  expect_error(save_montage(m, file.path(dir, "montage.bmp")), "Can't save")
+  # no device is left open
+  expect_identical(grDevices::dev.list(), devices)
+})
+
+test_that("print() draws at the physical size without errors", {
+  m <- tidymontage(local_montage_images(), x = condition)
+  path <- withr::local_tempfile(fileext = ".pdf")
+  grDevices::pdf(path, width = 8, height = 8)
+  on.exit(grDevices::dev.off())
+  expect_invisible(print(m))
 })

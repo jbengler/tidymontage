@@ -89,9 +89,11 @@ montage_layout_space <- function(montage, spec = montage_spec(montage), views = 
   }
   legend_df <- if (!is.null(legend) && nrow(items) > 0) {
     p <- geom$panels
+    # the legend goes beyond everything else, e.g. side labels below or beside panels
     legend_layout(items, legend, list(
       xmin = min(p$xmin), xmax = max(p$xmax), ymin = min(p$ymin), ymax = max(p$ymax),
-      top = extra$top, bottom = extra$bottom
+      top = extra$top, bottom = extra$bottom,
+      right_edge = geom$width - extra$right, bottom_edge = geom$height - extra$bottom
     ))
   }
   panels <- geom$panels

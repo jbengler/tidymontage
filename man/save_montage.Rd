@@ -11,10 +11,10 @@ save_montage(montage, filename, dpi = 300, ...)
 
 \item{filename}{File to write.}
 
-\item{dpi}{Resolution of the image panels. Panels are binned down to this
-resolution at the printed size.}
+\item{dpi}{Resolution of the image panels, and of bitmap files. Panels are
+binned down to this resolution at the printed size.}
 
-\item{...}{Passed to \code{\link[ggplot2:ggsave]{ggplot2::ggsave()}}.}
+\item{...}{Passed to the graphics device.}
 }
 \value{
 The montage, invisibly.
@@ -22,8 +22,9 @@ The montage, invisibly.
 \description{
 Renders the montage and saves it at its fixed physical size, set with
 \code{\link[=adjust_size]{adjust_size()}} (by default, the panel grid fits into 90 x 90 mm). The file
-format is taken from the file extension (\code{.pdf}, \code{.png}, \code{.svg}, \code{.tiff},
-...).
+format is taken from the file extension: \code{.pdf}, \code{.png}, \code{.tif}/\code{.tiff},
+\code{.jpg}/\code{.jpeg} or \code{.svg}. Bitmaps are written with the ragg package if it
+is installed, for consistent output on all systems.
 }
 \examples{
 \dontrun{

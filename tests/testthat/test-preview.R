@@ -53,9 +53,9 @@ test_that("preview_exposure() renders with the channel colour and outlines the c
   b <- montage_build(p, dpi = 72)
   expect_equal(unique(b$panels$.background), "white")
   expect_equal(sum(b$panels$.outline), 1)
-  plot <- montage_ggplot(b)
-  colours <- unlist(lapply(plot$layers, function(l) l$aes_params$colour))
-  expect_true("#E69F00" %in% colours)
+  el <- montage_grob(b)$children
+  outline <- Filter(function(g) g$name == "outline", el)[[1]]
+  expect_equal(outline$gp$col, "#E69F00")
 })
 
 test_that("preview_exposure() explains what is wrong", {
@@ -106,6 +106,6 @@ test_that("previews render consistently", {
   m <- tidymontage(local_montage_images(), x = condition) |>
     add_merge(C1, C2) |>
     add_crop(width = 0.6, height = 0.48)
-  vdiffr::expect_doppelganger("preview exposure", autoplot(suppressMessages(preview_exposure(m, "C1")), dpi = 72))
-  vdiffr::expect_doppelganger("preview positions", autoplot(preview_positions(m), dpi = 72))
+  vdiffr::expect_doppelganger("preview exposure", drawing(suppressMessages(preview_exposure(m, "C1"))))
+  vdiffr::expect_doppelganger("preview positions", drawing(preview_positions(m)))
 })

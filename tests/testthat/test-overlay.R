@@ -99,5 +99,5 @@ test_that("overlays render consistently", {
     adjust_exposure(min = 0, max = "p100") |>
     add_overlay(C1, C2, color = "yellow") |>
     add_color_legend()
-  vdiffr::expect_doppelganger("overlay", autoplot(m, dpi = 72))
+  vdiffr::expect_doppelganger("overlay", drawing(m))
 })

@@ -40,8 +40,9 @@ knitr::opts_chunk$set(render = function(x, ...) {
 The goal of tidymontage is to streamline the creation of publication-ready
 microscopy figure montages. It is a sibling of
 [tidyplots](https://github.com/jbengler/tidyplots): a tidy data frame of images
-goes in, montage components are added with pipeable verbs, and a ggplot comes
-out.
+goes in, montage components are added with pipeable verbs, and a figure of
+exact physical size comes out, ready to be placed next to tidyplots with
+[tidylayouts](https://github.com/jbengler/tidylayouts).
 
 tidymontage is in early development. Reading images, processing them with
 dplyr, and building montages with merges, overlays, crops, zooms, grid and
@@ -359,7 +360,7 @@ cells |>
   tidymontage(x = mutant) |>
   add_merge(Cy3, `Alexa Fluor 488`, DAPI) |>
   add_crop(width = 60, center = crops) |>
-  add_zoom(width = 15, center = zooms, box = "merge") |> str()
+  add_zoom(width = 15, center = zooms, box = "merge")
 
 cells |>
   tidymontage(x = mutant) |>
@@ -568,5 +569,5 @@ cells |>
   montage_panels()
 
 # unlinking display ranges across channels is possible, but flagged
-invisible(autoplot(tidymontage(cells, x = mutant) |> adjust_exposure(.by = mutant)))
+tidymontage(cells, x = mutant) |> adjust_exposure(.by = mutant)
 ```

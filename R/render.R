@@ -1,146 +1,181 @@
-# Drawing and saving ---------------------------------------------------------------
+# Drawing ---------------------------------------------------------------------------
+#
+# A montage renders to a gtable with 3 x 3 tracks. The middle track in both
+# directions is the image grid (from the first to the last image edge), named
+# "panel"; the outer tracks hold the decoration: headers and a top legend
+# before, side labels, scale bar labels and a bottom legend after. Layout
+# tools such as tidylayouts align figures on the "panel" track. One grob
+# spans all tracks; pixels are only read when it is drawn.
 
-montage_ggplot <- function(build) {
-  p <- build$panels
-  layers <- lapply(seq_len(nrow(p)), function(i) {
-    ggplot2::annotation_raster(
-      build$rasters[[i]],
-      xmin = p$xmin[i], xmax = p$xmax[i], ymin = -p$ymax[i], ymax = -p$ymin[i],
-      interpolate = FALSE
+montage_gtable <- function(montage, dpi = 150, call = rlang::caller_env()) {
+  space <- montage_layout_space(montage, call = call)
+  p <- space$panels
+  W <- space$width
+  H <- space$height
+  x0 <- min(p$xmin)
+  x1 <- max(p$xmax)
+  y0 <- min(p$ymin)
+  y1 <- max(p$ymax)
+  gt <- gtable::gtable(
+    widths = grid::unit(c(x0, x1 - x0, W - x1), "mm"),
+    heights = grid::unit(c(y0, y1 - y0, H - y1), "mm"),
+    name = "tidymontage"
+  )
+  content <- grid::gTree(montage = montage, dpi = dpi, name = "montage", cl = "tidymontage_grob")
+  gt <- gtable::gtable_add_grob(gt, content, t = 1, l = 1, b = 3, r = 3, name = "montage", clip = "off")
+  gtable::gtable_add_grob(gt, grid::nullGrob(), t = 2, l = 2, name = "panel")
+}
+
+#' @exportS3Method grid::makeContent
+makeContent.tidymontage_grob <- function(x) {
+  # warnings (e.g. about display ranges) are reported without a call: they
+  # arise while drawing, inside grid
+  grid::setChildren(x, grid::gList(montage_grob(montage_build(x$montage, dpi = x$dpi, call = NULL))))
+}
+
+# All elements of a built montage, in a viewport with figure coordinates in
+# mm. Positions in the build are measured from the top-left corner (y down);
+# grid counts y from the bottom, so y becomes height - y.
+montage_grob <- function(b) {
+  H <- b$height
+  n <- function(v) grid::unit(v, "native")
+  lwd <- function(mm) mm * 72.27 / 25.4
+  out <- list()
+  add <- function(g) out[[length(out) + 1]] <<- g
+  rect <- function(name, xmin, xmax, ymin, ymax, ...) {
+    grid::rectGrob(
+      x = n(xmin), y = n(H - ymax), width = n(xmax - xmin), height = n(ymax - ymin),
+      just = c("left", "bottom"), gp = grid::gpar(...), name = name
     )
-  })
+  }
+  text <- function(name, label, x, y, hjust = 0.5, vjust = 0.5, rot = 0, ...) {
+    grid::textGrob(
+      label, x = n(x), y = n(H - y), hjust = hjust, vjust = vjust, rot = rot,
+      gp = grid::gpar(...), name = name
+    )
+  }
+  # text grobs take one angle and justification each
+  texts <- function(name, d, label, size, col, lineheight = 0.9) {
+    for (k in seq_len(nrow(d))) {
+      add(text(
+        paste0(name, "-", k), label[k], d$x[k], d$y[k],
+        hjust = d$hjust[k] %||% 0.5, vjust = d$vjust[k] %||% 0.5, rot = d$angle[k] %||% 0,
+        fontsize = size, col = col, lineheight = lineheight
+      ))
+    }
+  }
+
+  p <- b$panels
+  for (i in seq_len(nrow(p))) {
+    add(grid::rasterGrob(
+      b$rasters[[i]], x = n(p$xmin[i]), y = n(H - p$ymax[i]),
+      width = n(p$xmax[i] - p$xmin[i]), height = n(p$ymax[i] - p$ymin[i]),
+      just = c("left", "bottom"), interpolate = FALSE, name = paste0("image-", i)
+    ))
+  }
   # white panels get a thin black frame, so they stand out from the page
   white <- p[p$.background %in% "white", , drop = FALSE]
   if (nrow(white) > 0) {
-    layers <- c(layers, list(ggplot2::annotate(
-      "rect", xmin = white$xmin, xmax = white$xmax, ymin = -white$ymax, ymax = -white$ymin,
-      fill = NA, colour = "black", linewidth = 0.25
-    )))
+    add(rect("frames", white$xmin, white$xmax, white$ymin, white$ymax, col = "black", fill = NA, lwd = lwd(0.25)))
   }
   # previews: the current option is outlined
   if (".outline" %in% names(p) && any(p$.outline)) {
     o <- p[p$.outline, , drop = FALSE]
-    layers <- c(layers, list(ggplot2::annotate(
-      "rect", xmin = o$xmin - 0.4, xmax = o$xmax + 0.4, ymin = -o$ymax - 0.4, ymax = -o$ymin + 0.4,
-      fill = NA, colour = "#E69F00", linewidth = 0.8
-    )))
+    add(rect("outline", o$xmin - 0.4, o$xmax + 0.4, o$ymin - 0.4, o$ymax + 0.4,
+             col = "#E69F00", fill = NA, lwd = lwd(0.8)))
   }
-  if (!is.null(build$preview)) {
-    pv <- build$preview
-    layers <- c(layers, list(
-      ggplot2::annotate(
-        "segment", x = pv$lines$x, xend = pv$lines$xend, y = -pv$lines$y, yend = -pv$lines$yend,
-        colour = pv$lines$color, alpha = 0.3, linewidth = 0.15
-      ),
-      ggplot2::annotate(
-        "text", x = pv$ticks$x, y = -pv$ticks$y, label = pv$ticks$label,
-        hjust = pv$ticks$hjust, vjust = pv$ticks$vjust, size = 5 / ggplot2::.pt, colour = "grey30"
-      )
+  if (!is.null(b$preview)) {
+    pv <- b$preview
+    ln <- pv$lines
+    add(grid::segmentsGrob(
+      n(ln$x), n(H - ln$y), n(ln$xend), n(H - ln$yend),
+      gp = grid::gpar(col = ln$color, alpha = 0.3, lwd = lwd(0.15)), name = "preview-grid"
     ))
+    tk <- pv$ticks
+    texts("preview-ticks", tk, tk$label, 5, "grey30")
     if (!is.null(pv$rects)) {
       r <- pv$rects
-      layers <- c(layers, list(
-        ggplot2::annotate(
-          "rect", xmin = r$xmin, xmax = r$xmax, ymin = -r$ymax, ymax = -r$ymin,
-          fill = NA, colour = r$color, linewidth = 0.3
-        ),
-        ggplot2::annotate(
-          "text", x = r$xmin, y = -r$ymin + 0.3, label = r$label, hjust = 0, vjust = 0,
-          size = 5 / ggplot2::.pt, colour = r$color
-        )
-      ))
+      add(rect("preview-regions", r$xmin, r$xmax, r$ymin, r$ymax, col = r$color, fill = NA, lwd = lwd(0.3)))
+      d <- data.frame(x = r$xmin, y = r$ymin - 0.3, hjust = 0, vjust = 0)
+      for (k in seq_len(nrow(r))) {
+        add(text(paste0("preview-region-label-", k), r$label[k], d$x[k], d$y[k], hjust = 0, vjust = 0,
+                 fontsize = 5, col = r$color[k]))
+      }
     }
   }
-  if (!is.null(build$boxes) && nrow(build$boxes) > 0) {
-    b <- build$boxes
-    layers <- c(layers, list(ggplot2::annotate(
-      "rect", xmin = b$xmin, xmax = b$xmax, ymin = -b$ymax, ymax = -b$ymin,
-      fill = NA, colour = b$color %||% "white", linewidth = 0.25
-    )))
+  if (!is.null(b$boxes) && nrow(b$boxes) > 0) {
+    bx <- b$boxes
+    add(rect("zoom-boxes", bx$xmin, bx$xmax, bx$ymin, bx$ymax, col = bx$color %||% "white", fill = NA, lwd = lwd(0.25)))
   }
-  if (!is.null(build$scale_bars)) {
-    sb <- build$scale_bars
+  if (!is.null(b$scale_bars)) {
+    sb <- b$scale_bars
     st <- attr(sb, "style")
     outline <- st$outline %||% NA
-    has_outline <- !is.na(outline)
-    layers <- c(layers, list(ggplot2::annotate(
-      "rect", xmin = sb$xmin, xmax = sb$xmax, ymin = -sb$ymax, ymax = -sb$ymin,
-      fill = st$color, colour = if (has_outline) outline else NA, linewidth = 0.15
-    )))
+    add(rect("scale-bars", sb$xmin, sb$xmax, sb$ymin, sb$ymax,
+             fill = st$color, col = if (is.na(outline)) NA else outline, lwd = lwd(0.15)))
     if (isTRUE(st$label)) {
-      text_layer <- function(dx, dy, colour) {
-        ggplot2::annotate(
-          "text", x = sb$label_x + dx, y = -sb$label_y + dy, label = sb$label, parse = TRUE,
-          hjust = sb$label_hjust, vjust = sb$label_vjust, size = st$size / ggplot2::.pt, colour = colour
-        )
+      for (k in seq_len(nrow(sb))) {
+        label <- parse(text = sb$label[k])
+        if (!is.na(outline)) {
+          # a halo: the label drawn in the outline colour around its position
+          angles <- seq(0, 2 * pi, length.out = 13)[-13]
+          for (j in seq_along(angles)) {
+            add(text(
+              paste0("scale-bar-halo-", k, "-", j), label,
+              sb$label_x[k] + 0.12 * cos(angles[j]), sb$label_y[k] - 0.12 * sin(angles[j]),
+              hjust = sb$label_hjust[k], vjust = sb$label_vjust[k], fontsize = st$size, col = outline
+            ))
+          }
+        }
+        add(text(paste0("scale-bar-label-", k), label, sb$label_x[k], sb$label_y[k],
+                 hjust = sb$label_hjust[k], vjust = sb$label_vjust[k], fontsize = st$size, col = st$color))
       }
-      if (has_outline) {
-        # a halo: the label drawn in the outline colour around its position
-        r <- 0.12
-        angles <- seq(0, 2 * pi, length.out = 13)[-13]
-        layers <- c(layers, Map(function(a) text_layer(r * cos(a), r * sin(a), outline), angles))
-      }
-      layers <- c(layers, list(text_layer(0, 0, st$color)))
     }
   }
-  if (!is.null(build$legend)) {
-    lg <- build$legend
+  if (!is.null(b$legend)) {
+    lg <- b$legend
     st <- attr(lg, "style")
-    layers <- c(layers, list(
-      ggplot2::annotate(
-        "rect", xmin = lg$xmin, xmax = lg$xmax, ymin = -lg$ymax, ymax = -lg$ymin,
-        fill = lg$color, colour = "grey40", linewidth = 0.15
-      ),
-      ggplot2::annotate(
-        "text", x = lg$text_x, y = -lg$text_y, label = lg$label, hjust = 0,
-        size = st$size / ggplot2::.pt, colour = st$color
-      )
-    ))
+    add(rect("legend-keys", lg$xmin, lg$xmax, lg$ymin, lg$ymax, fill = lg$color, col = "grey40", lwd = lwd(0.15)))
+    texts("legend-label", data.frame(x = lg$text_x, y = lg$text_y, hjust = 0), lg$label, st$size, st$color)
   }
-  hd <- build$headers %||% list(size = 7, color = "black")
-  if (!is.null(build$labels) && nrow(build$labels) > 0) {
-    l <- build$labels
-    layers <- c(layers, list(ggplot2::annotate(
-      "text", x = l$x, y = -l$y, label = l$label, angle = l$angle,
-      size = hd$size / ggplot2::.pt, colour = hd$color
-    )))
+  hd <- b$headers %||% list(size = 7, color = "black")
+  if (!is.null(b$labels) && nrow(b$labels) > 0) {
+    texts("header", b$labels, b$labels$label, hd$size, hd$color)
   }
-  if (!is.null(build$side_labels) && nrow(build$side_labels) > 0) {
-    sl <- build$side_labels
-    layers <- c(layers, list(ggplot2::annotate(
-      "text", x = sl$x, y = -sl$y, label = sl$label, hjust = sl$hjust, vjust = sl$vjust,
-      angle = sl$angle, size = hd$size / ggplot2::.pt, colour = hd$color, lineheight = 0.9
-    )))
+  if (!is.null(b$side_labels) && nrow(b$side_labels) > 0) {
+    texts("side-label", b$side_labels, b$side_labels$label, hd$size, hd$color)
   }
-  if (!is.null(build$lines) && nrow(build$lines) > 0) {
-    ln <- build$lines
-    layers <- c(layers, list(ggplot2::annotate(
-      "segment", x = ln$x, xend = ln$xend, y = -ln$y, yend = -ln$yend,
-      colour = hd$color, linewidth = 0.25
-    )))
+  if (!is.null(b$lines) && nrow(b$lines) > 0) {
+    ln <- b$lines
+    add(grid::segmentsGrob(n(ln$x), n(H - ln$y), n(ln$xend), n(H - ln$yend),
+                           gp = grid::gpar(col = hd$color, lwd = lwd(0.25)), name = "header-lines"))
   }
-  ggplot2::ggplot() +
-    layers +
-    ggplot2::coord_fixed(xlim = c(0, build$width), ylim = c(-build$height, 0), expand = FALSE) +
-    ggplot2::theme_void() +
-    ggplot2::theme(
-      plot.background = ggplot2::element_rect(fill = "white", colour = NA),
-      plot.margin = ggplot2::margin(0, 0, 0, 0)
-    )
+  grid::gTree(
+    children = do.call(grid::gList, out),
+    vp = grid::viewport(xscale = c(0, b$width), yscale = c(0, b$height)),
+    name = "montage-elements"
+  )
+}
+
+# The tracks are all in mm, so no unit conversion (which would open a
+# graphics device) is needed.
+gtable_size_mm <- function(gt) {
+  c(width = sum(as.numeric(gt$widths)), height = sum(as.numeric(gt$heights)))
 }
 
 #' Save a montage at its exact physical size
 #'
 #' Renders the montage and saves it at its fixed physical size, set with
 #' [adjust_size()] (by default, the panel grid fits into 90 x 90 mm). The file
-#' format is taken from the file extension (`.pdf`, `.png`, `.svg`, `.tiff`,
-#' ...).
+#' format is taken from the file extension: `.pdf`, `.png`, `.tif`/`.tiff`,
+#' `.jpg`/`.jpeg` or `.svg`. Bitmaps are written with the ragg package if it
+#' is installed, for consistent output on all systems.
 #'
 #' @param montage A [tidymontage()] object.
 #' @param filename File to write.
-#' @param dpi Resolution of the image panels. Panels are binned down to this
-#'   resolution at the printed size.
-#' @param ... Passed to [ggplot2::ggsave()].
+#' @param dpi Resolution of the image panels, and of bitmap files. Panels are
+#'   binned down to this resolution at the printed size.
+#' @param ... Passed to the graphics device.
 #'
 #' @returns The montage, invisibly.
 #' @examples
@@ -151,13 +186,50 @@ montage_ggplot <- function(build) {
 #' @export
 save_montage <- function(montage, filename, dpi = 300, ...) {
   check_tidymontage(montage)
-  build <- montage_build(montage, dpi = dpi)
-  ggplot2::ggsave(
-    filename, montage_ggplot(build),
-    width = build$width, height = build$height, units = "mm", dpi = dpi, bg = "white", ...
-  )
-  cli::cli_inform("Saved {.file {filename}} ({round(build$width, 1)} x {round(build$height, 1)} mm).")
+  gt <- montage_gtable(montage, dpi = dpi)
+  size <- gtable_size_mm(gt)
+  open_device(filename, size[["width"]], size[["height"]], dpi, ...)
+  on.exit(grDevices::dev.off(), add = TRUE)
+  grid::grid.newpage()
+  grid::grid.draw(gt)
+  cli::cli_inform("Saved {.file {filename}} ({round(size[['width']], 1)} x {round(size[['height']], 1)} mm).")
   invisible(montage)
+}
+
+open_device <- function(filename, width, height, dpi, ..., call = rlang::caller_env()) {
+  ext <- tolower(tools::file_ext(filename))
+  inch <- c(width, height) / 25.4
+  has_ragg <- requireNamespace("ragg", quietly = TRUE)
+  switch(
+    ext,
+    pdf = if (capabilities("cairo")) {
+      grDevices::cairo_pdf(filename, width = inch[1], height = inch[2], ...)
+    } else {
+      grDevices::pdf(filename, width = inch[1], height = inch[2], useDingbats = FALSE, ...)
+    },
+    svg = grDevices::svg(filename, width = inch[1], height = inch[2], ...),
+    png = if (has_ragg) {
+      ragg::agg_png(filename, width = width, height = height, units = "mm", res = dpi, background = "white", ...)
+    } else {
+      grDevices::png(filename, width = width, height = height, units = "mm", res = dpi, bg = "white", ...)
+    },
+    tif = ,
+    tiff = if (has_ragg) {
+      ragg::agg_tiff(filename, width = width, height = height, units = "mm", res = dpi, background = "white", ...)
+    } else {
+      grDevices::tiff(filename, width = width, height = height, units = "mm", res = dpi, bg = "white", ...)
+    },
+    jpg = ,
+    jpeg = if (has_ragg) {
+      ragg::agg_jpeg(filename, width = width, height = height, units = "mm", res = dpi, background = "white", ...)
+    } else {
+      grDevices::jpeg(filename, width = width, height = height, units = "mm", res = dpi, bg = "white", ...)
+    },
+    cli::cli_abort(
+      "Can't save {.file {filename}}: use {.file .pdf}, {.file .png}, {.file .tif}, {.file .jpg} or {.file .svg}.",
+      call = call
+    )
+  )
 }
 
 #' Panels of a montage
@@ -187,30 +259,14 @@ montage_panels <- function(montage) {
 
 #' @export
 print.tidymontage <- function(x, ...) {
-  build <- montage_build(x, dpi = 150)
+  gt <- montage_gtable(x, dpi = 150)
+  size <- gtable_size_mm(gt)
+  grid::grid.newpage()
   # draw at the montage's physical size, centred on the device
-  vp <- grid::viewport(width = grid::unit(build$width, "mm"), height = grid::unit(build$height, "mm"))
-  print(montage_ggplot(build), newpage = TRUE, vp = vp)
+  grid::pushViewport(grid::viewport(
+    width = grid::unit(size[["width"]], "mm"), height = grid::unit(size[["height"]], "mm")
+  ))
+  grid::grid.draw(gt)
+  grid::popViewport()
   invisible(x)
-}
-
-#' @importFrom ggplot2 autoplot
-#' @export
-ggplot2::autoplot
-
-#' Convert a montage to a ggplot
-#'
-#' The ggplot is laid out in mm at the montage's size (see [adjust_size()]);
-#' the size is stored in the attribute `"size_mm"`.
-#'
-#' @param object A [tidymontage()] object.
-#' @param dpi Resolution of the image panels.
-#' @param ... Unused.
-#' @returns A ggplot object.
-#' @export
-autoplot.tidymontage <- function(object, dpi = 150, ...) {
-  build <- montage_build(object, dpi = dpi)
-  p <- montage_ggplot(build)
-  attr(p, "size_mm") <- c(width = build$width, height = build$height)
-  p
 }

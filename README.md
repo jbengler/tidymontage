@@ -12,7 +12,8 @@ The goal of tidymontage is to streamline the creation of
 publication-ready microscopy figure montages. It is a sibling of
 [tidyplots](https://github.com/jbengler/tidyplots): a tidy data frame of
 images goes in, montage components are added with pipeable verbs, and a
-ggplot comes out.
+figure of exact physical size comes out, ready to be placed next to
+tidyplots with [tidylayouts](https://github.com/jbengler/tidylayouts).
 
 tidymontage is in early development. Reading images, processing them
 with dplyr, and building montages with merges, overlays, crops, zooms,
@@ -454,150 +455,12 @@ cells |>
   tidymontage(x = mutant) |>
   add_merge(Cy3, `Alexa Fluor 488`, DAPI) |>
   add_crop(width = 60, center = crops) |>
-  add_zoom(width = 15, center = zooms, box = "merge") |> str()
-#> List of 3
-#>  $ images: tibble [6 x 22] (S3: tbl_df/tbl/data.frame)
-#>   ..$ filepath         : chr [1:6] "demo_images/Cos7_eGFP-hL6-I56A_HA-hBCL-xL_63x_2019_12_20__12_23_13.ome.tif" "demo_images/Cos7_eGFP-hL6-I56A_HA-hBCL-xL_63x_2019_12_20__12_23_13.ome.tif" "demo_images/Cos7_eGFP-hL6-I56A_HA-hBCL-xL_63x_2019_12_20__12_23_13.ome.tif" "demo_images/Cos7_eGFP-hL6-L59A_HA-hBCL-xL_63x_2019_12_20__12_29_05.ome.tif" ...
-#>   ..$ series           : int [1:6] 1 1 1 1 1 1
-#>   ..$ channel_index    : int [1:6] 1 2 3 1 2 3
-#>   ..$ channel          : chr [1:6] "Cy3" "Alexa Fluor 488" "DAPI" "Cy3" ...
-#>   ..$ z                : int [1:6] 1 1 1 1 1 1
-#>   ..$ t                : int [1:6] 1 1 1 1 1 1
-#>   ..$ img              : img [1:6] 
-#>   .. ..$ :List of 1
-#>   .. .. ..$ node:List of 9
-#>   .. .. .. ..$ type      : chr "source"
-#>   .. .. .. ..$ file      : chr "/Users/janbroderengler/GoogleDrive/R/packages/tidymontage/demo_images/Cos7_eGFP-hL6-I56A_HA-hBCL-xL_63x_2019_12"| __truncated__
-#>   .. .. .. ..$ page      : int 1
-#>   .. .. .. ..$ sample    : int NA
-#>   .. .. .. ..$ palette   : logi TRUE
-#>   .. .. .. ..$ bits      : int 16
-#>   .. .. .. ..$ size_x    : int 1796
-#>   .. .. .. ..$ size_y    : int 1796
-#>   .. .. .. ..$ pixel_size: num 0.0707
-#>   .. ..$ :List of 1
-#>   .. .. ..$ node:List of 9
-#>   .. .. .. ..$ type      : chr "source"
-#>   .. .. .. ..$ file      : chr "/Users/janbroderengler/GoogleDrive/R/packages/tidymontage/demo_images/Cos7_eGFP-hL6-I56A_HA-hBCL-xL_63x_2019_12"| __truncated__
-#>   .. .. .. ..$ page      : int 2
-#>   .. .. .. ..$ sample    : int NA
-#>   .. .. .. ..$ palette   : logi TRUE
-#>   .. .. .. ..$ bits      : int 16
-#>   .. .. .. ..$ size_x    : int 1796
-#>   .. .. .. ..$ size_y    : int 1796
-#>   .. .. .. ..$ pixel_size: num 0.0707
-#>   .. ..$ :List of 1
-#>   .. .. ..$ node:List of 9
-#>   .. .. .. ..$ type      : chr "source"
-#>   .. .. .. ..$ file      : chr "/Users/janbroderengler/GoogleDrive/R/packages/tidymontage/demo_images/Cos7_eGFP-hL6-I56A_HA-hBCL-xL_63x_2019_12"| __truncated__
-#>   .. .. .. ..$ page      : int 3
-#>   .. .. .. ..$ sample    : int NA
-#>   .. .. .. ..$ palette   : logi TRUE
-#>   .. .. .. ..$ bits      : int 16
-#>   .. .. .. ..$ size_x    : int 1796
-#>   .. .. .. ..$ size_y    : int 1796
-#>   .. .. .. ..$ pixel_size: num 0.0707
-#>   .. ..$ :List of 1
-#>   .. .. ..$ node:List of 9
-#>   .. .. .. ..$ type      : chr "source"
-#>   .. .. .. ..$ file      : chr "/Users/janbroderengler/GoogleDrive/R/packages/tidymontage/demo_images/Cos7_eGFP-hL6-L59A_HA-hBCL-xL_63x_2019_12"| __truncated__
-#>   .. .. .. ..$ page      : int 1
-#>   .. .. .. ..$ sample    : int NA
-#>   .. .. .. ..$ palette   : logi TRUE
-#>   .. .. .. ..$ bits      : int 16
-#>   .. .. .. ..$ size_x    : int 1796
-#>   .. .. .. ..$ size_y    : int 1796
-#>   .. .. .. ..$ pixel_size: num 0.0707
-#>   .. ..$ :List of 1
-#>   .. .. ..$ node:List of 9
-#>   .. .. .. ..$ type      : chr "source"
-#>   .. .. .. ..$ file      : chr "/Users/janbroderengler/GoogleDrive/R/packages/tidymontage/demo_images/Cos7_eGFP-hL6-L59A_HA-hBCL-xL_63x_2019_12"| __truncated__
-#>   .. .. .. ..$ page      : int 2
-#>   .. .. .. ..$ sample    : int NA
-#>   .. .. .. ..$ palette   : logi TRUE
-#>   .. .. .. ..$ bits      : int 16
-#>   .. .. .. ..$ size_x    : int 1796
-#>   .. .. .. ..$ size_y    : int 1796
-#>   .. .. .. ..$ pixel_size: num 0.0707
-#>   .. ..$ :List of 1
-#>   .. .. ..$ node:List of 9
-#>   .. .. .. ..$ type      : chr "source"
-#>   .. .. .. ..$ file      : chr "/Users/janbroderengler/GoogleDrive/R/packages/tidymontage/demo_images/Cos7_eGFP-hL6-L59A_HA-hBCL-xL_63x_2019_12"| __truncated__
-#>   .. .. .. ..$ page      : int 3
-#>   .. .. .. ..$ sample    : int NA
-#>   .. .. .. ..$ palette   : logi TRUE
-#>   .. .. .. ..$ bits      : int 16
-#>   .. .. .. ..$ size_x    : int 1796
-#>   .. .. .. ..$ size_y    : int 1796
-#>   .. .. .. ..$ pixel_size: num 0.0707
-#>   ..$ color            : chr [1:6] "#FF00FF" "#00FF00" "#FFFFFF" "#FF00FF" ...
-#>   ..$ channel_name     : chr [1:6] "Ch2-T1" "Ch1-T2" "Ch1-T3" "Ch2-T1" ...
-#>   ..$ fluor            : chr [1:6] "Cy3" "Alexa Fluor 488" "DAPI" "Cy3" ...
-#>   ..$ size_x           : int [1:6] 1796 1796 1796 1796 1796 1796
-#>   ..$ size_y           : int [1:6] 1796 1796 1796 1796 1796 1796
-#>   ..$ size_z           : int [1:6] 1 1 1 1 1 1
-#>   ..$ size_t           : int [1:6] 1 1 1 1 1 1
-#>   ..$ bit_depth        : int [1:6] 16 16 16 16 16 16
-#>   ..$ pixel_size       : num [1:6] 0.0707 0.0707 0.0707 0.0707 0.0707 ...
-#>   ..$ pixel_unit       : chr [1:6] "<U+00B5>m" "<U+00B5>m" "<U+00B5>m" "<U+00B5>m" ...
-#>   ..$ z_step           : num [1:6] 1 1 1 1 1 1
-#>   ..$ meta_source      : chr [1:6] "ome-xml" "ome-xml" "ome-xml" "ome-xml" ...
-#>   ..$ pixel_size_source: chr [1:6] "ome-xml" "ome-xml" "ome-xml" "ome-xml" ...
-#>   ..$ mutant           : chr [1:6] "I56A" "I56A" "I56A" "L59A" ...
-#>   ..$ target           : chr [1:6] "HA-BCL-xL" "eGFP-L6" "nuclei" "HA-BCL-xL" ...
-#>  $ setup :List of 6
-#>   ..$ x     : chr "mutant"
-#>   ..$ y     : chr(0) 
-#>   ..$ levels: list()
-#>   ..$ layout:List of 3
-#>   .. ..$ type   : chr "grid"
-#>   .. ..$ channel: chr "auto"
-#>   .. ..$ view   : chr "auto"
-#>   .. ..- attr(*, "class")= chr "tidymontage_layout"
-#>   ..$ gap   : num 1
-#>   ..$ size  :List of 3
-#>   .. ..$ width : num 90
-#>   .. ..$ height: num 90
-#>   .. ..$ given :List of 3
-#>   .. .. ..$ width : num 90
-#>   .. .. ..$ height: num 90
-#>   .. .. ..$ units : chr "mm"
-#>  $ steps :List of 3
-#>   ..$ :List of 2
-#>   .. ..$ type  : chr "add_merge"
-#>   .. ..$ params:List of 3
-#>   .. .. ..$ channels: chr [1:3] "Cy3" "Alexa Fluor 488" "DAPI"
-#>   .. .. ..$ name    : chr "merge"
-#>   .. .. ..$ colors  : NULL
-#>   .. ..- attr(*, "class")= chr [1:2] "tidymontage_step_add_merge" "tidymontage_step"
-#>   ..$ :List of 2
-#>   .. ..$ type  : chr "add_crop"
-#>   .. ..$ params:List of 6
-#>   .. .. ..$ name        : chr "crop"
-#>   .. .. ..$ width       : num 60
-#>   .. .. ..$ height      : num 60
-#>   .. .. ..$ units       : chr "um"
-#>   .. .. ..$ center      : tibble [2 x 3] (S3: tbl_df/tbl/data.frame)
-#>   .. .. .. ..$ mutant: chr [1:2] "I56A" "L59A"
-#>   .. .. .. ..$ x     : num [1:2] 0.47 0.42
-#>   .. .. .. ..$ y     : num [1:2] 0.4 0.55
-#>   .. .. ..$ center_units: chr "rel"
-#>   .. ..- attr(*, "class")= chr [1:2] "tidymontage_step_add_crop" "tidymontage_step"
-#>   ..$ :List of 2
-#>   .. ..$ type  : chr "add_zoom"
-#>   .. ..$ params:List of 7
-#>   .. .. ..$ name        : chr "zoom"
-#>   .. .. ..$ width       : num 15
-#>   .. .. ..$ height      : num 15
-#>   .. .. ..$ units       : chr "um"
-#>   .. .. ..$ center      : tibble [2 x 3] (S3: tbl_df/tbl/data.frame)
-#>   .. .. .. ..$ mutant: chr [1:2] "I56A" "L59A"
-#>   .. .. .. ..$ x     : num [1:2] 0.5 0.4
-#>   .. .. .. ..$ y     : num [1:2] 0.4 0.48
-#>   .. .. ..$ center_units: chr "rel"
-#>   .. .. ..$ box         : chr "merge"
-#>   .. ..- attr(*, "class")= chr [1:2] "tidymontage_step_add_zoom" "tidymontage_step"
-#>  - attr(*, "class")= chr "tidymontage"
+  add_zoom(width = 15, center = zooms, box = "merge")
+```
+
+<img src="man/figures/README-crop-zoom.png" alt="" width="358" />
+
+``` r
 
 cells |>
   tidymontage(x = mutant) |>
@@ -607,7 +470,7 @@ cells |>
   preview_positions()
 ```
 
-<img src="man/figures/README-crop-zoom.png" alt="" width="364" />
+<img src="man/figures/README-crop-zoom-2.png" alt="" width="364" />
 
 ``` r
 
@@ -622,7 +485,7 @@ cells |>
 #> i Percentiles from 2 images sharing its display range.
 ```
 
-<img src="man/figures/README-crop-zoom-2.png" alt="" width="358" />
+<img src="man/figures/README-crop-zoom-3.png" alt="" width="358" />
 
 Display ranges are computed from the full images, so cropping doesn’t
 change brightness. Map `view` yourself to put views elsewhere, and
@@ -868,7 +731,9 @@ cells |>
 #> # i 2 more variables: px_ymin <dbl>, px_ymax <dbl>
 
 # unlinking display ranges across channels is possible, but flagged
-invisible(autoplot(tidymontage(cells, x = mutant) |> adjust_exposure(.by = mutant)))
-#> Warning in autoplot(adjust_exposure(tidymontage(cells, x = mutant), .by = mutant)): A display range is shared by several channels.
+tidymontage(cells, x = mutant) |> adjust_exposure(.by = mutant)
+#> Warning: A display range is shared by several channels.
 #> i Display ranges are usually linked per channel: include channel in `.by` of `adjust_exposure()`.
 ```
+
+<img src="man/figures/README-layout-errors.png" alt="" width="243" />

@@ -41,4 +41,3 @@ reference:
   - starts_with("layout_")
   - starts_with("montage_")
   - starts_with("is_")
-  - starts_with("autoplot")
