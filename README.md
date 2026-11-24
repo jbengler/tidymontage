@@ -45,32 +45,32 @@ are read at this point.
 library(tidymontage)
 library(dplyr)
 #> 
-#> Attache Paket: 'dplyr'
-#> Die folgenden Objekte sind maskiert von 'package:stats':
+#> Attaching package: 'dplyr'
+#> The following objects are masked from 'package:stats':
 #> 
 #>     filter, lag
-#> Die folgenden Objekte sind maskiert von 'package:base':
+#> The following objects are masked from 'package:base':
 #> 
 #>     intersect, setdiff, setequal, union
 library(tidyr)
 
 images <- read_images("demo_images")
 images
-#> # A tibble: 46 x 20
+#> # A tibble: 46 × 20
 #>    filepath   series channel_index channel     z     t    img color channel_name fluor size_x size_y
 #>    <chr>       <int>         <int> <chr>   <int> <int>  <img> <chr> <chr>        <chr>  <int>  <int>
-#>  1 demo_imag~      1             1 Cy3         1     1 page 1 #FF0~ Ch2-T1       Cy3     1796   1796
-#>  2 demo_imag~      1             2 Alexa ~     1     1 page 2 #00F~ Ch1-T2       Alex~   1796   1796
-#>  3 demo_imag~      1             3 DAPI        1     1 page 3 #FFF~ Ch1-T3       DAPI    1796   1796
-#>  4 demo_imag~      1             1 Cy3         1     1 page 1 #FF0~ Ch2-T1       Cy3     1796   1796
-#>  5 demo_imag~      1             2 Alexa ~     1     1 page 2 #00F~ Ch1-T2       Alex~   1796   1796
-#>  6 demo_imag~      1             3 DAPI        1     1 page 3 #FFF~ Ch1-T3       DAPI    1796   1796
-#>  7 demo_imag~      1             1 C1          1     1 page 1 #FF0~ <NA>         <NA>    1796   1796
-#>  8 demo_imag~      1             2 C2          1     1 page 2 #00F~ <NA>         <NA>    1796   1796
-#>  9 demo_imag~      1             3 C3          1     1 page 3 #FFF~ <NA>         <NA>    1796   1796
-#> 10 demo_imag~      1             1 Cy3         1     1 page 1 #FF0~ Ch2-T1       Cy3     1796   1796
-#> # i 36 more rows
-#> # i 8 more variables: size_z <int>, size_t <int>, bit_depth <int>, pixel_size <dbl>,
+#>  1 demo_imag…      1             1 C1          1     1 page 1 #FF0… <NA>         <NA>    1796   1796
+#>  2 demo_imag…      1             2 C2          1     1 page 2 #00F… <NA>         <NA>    1796   1796
+#>  3 demo_imag…      1             3 C3          1     1 page 3 #FFF… <NA>         <NA>    1796   1796
+#>  4 demo_imag…      1             1 Cy3         1     1 page 1 #FF0… Ch2-T1       Cy3     1796   1796
+#>  5 demo_imag…      1             2 Alexa …     1     1 page 2 #00F… Ch1-T2       Alex…   1796   1796
+#>  6 demo_imag…      1             3 DAPI        1     1 page 3 #FFF… Ch1-T3       DAPI    1796   1796
+#>  7 demo_imag…      1             1 Cy3         1     1 page 1 #FF0… Ch2-T1       Cy3     1796   1796
+#>  8 demo_imag…      1             2 Alexa …     1     1 page 2 #00F… Ch1-T2       Alex…   1796   1796
+#>  9 demo_imag…      1             3 DAPI        1     1 page 3 #FFF… Ch1-T3       DAPI    1796   1796
+#> 10 demo_imag…      1             1 C1          1     1 page 1 #FF0… <NA>         <NA>    1796   1796
+#> # ℹ 36 more rows
+#> # ℹ 8 more variables: size_z <int>, size_t <int>, bit_depth <int>, pixel_size <dbl>,
 #> #   pixel_unit <chr>, z_step <dbl>, meta_source <chr>, pixel_size_source <chr>
 ```
 
@@ -80,15 +80,15 @@ come from?
 ``` r
 images |>
   count(file = basename(filepath), meta_source, pixel_size_source, name = "images")
-#> # A tibble: 7 x 4
+#> # A tibble: 7 × 4
 #>   file                                                          meta_source pixel_size_source images
 #>   <chr>                                                         <chr>       <chr>              <int>
-#> 1 Cos7_eGFP-hL6-I56A_HA-hBCL-xL_63x_2019_12_20__12_23_13.ome.t~ ome-xml     ome-xml                3
+#> 1 Cos7_eGFP-hL6-I56A_HA-hBCL-xL_63x_2019_12_20__12_23_13.ome.t… ome-xml     ome-xml                3
 #> 2 Cos7_eGFP-hL6-I56A_HA-hBCL-xL_63x_2019_12_20__12_23_13.tif    imagej      imagej                 3
-#> 3 Cos7_eGFP-hL6-I56A_HA-hBCL-xL_63x_2019_12_20__12_23_13_OME.t~ imagej      tiff                   3
-#> 4 Cos7_eGFP-hL6-L59A_HA-hBCL-xL_63x_2019_12_20__12_29_05.ome.t~ ome-xml     ome-xml                3
+#> 3 Cos7_eGFP-hL6-I56A_HA-hBCL-xL_63x_2019_12_20__12_23_13_OME.t… imagej      tiff                   3
+#> 4 Cos7_eGFP-hL6-L59A_HA-hBCL-xL_63x_2019_12_20__12_29_05.ome.t… ome-xml     ome-xml                3
 #> 5 Cos7_eGFP-hL6-L59A_HA-hBCL-xL_63x_2019_12_20__12_29_05.tif    imagej      imagej                 3
-#> 6 Cos7_eGFP-hL6-L59A_HA-hBCL-xL_63x_2019_12_20__12_29_05_OME.t~ imagej      tiff                   3
+#> 6 Cos7_eGFP-hL6-L59A_HA-hBCL-xL_63x_2019_12_20__12_29_05_OME.t… imagej      tiff                   3
 #> 7 DIV14Actin-01-Airyscan Processing-02.tif                      imagej      imagej                28
 ```
 
@@ -99,7 +99,7 @@ microscope metadata:
 images |>
   filter(grepl("Airyscan", filepath), z == 1) |>
   select(channel, channel_name, color, size_x, size_z, pixel_size, z_step)
-#> # A tibble: 4 x 7
+#> # A tibble: 4 × 7
 #>   channel         channel_name color   size_x size_z pixel_size z_step
 #>   <chr>           <chr>        <chr>    <int>  <int>      <dbl>  <dbl>
 #> 1 Alexa Fluor 647 AF647-T1     #FF00FF   2024      7     0.0707    1.8
@@ -168,7 +168,7 @@ the pixels are needed.
 projected <- stack |>
   summarise(img = max(img), .by = c(filepath, channel, color))
 projected
-#> # A tibble: 4 x 4
+#> # A tibble: 4 × 4
 #>   filepath                                             channel         color        img
 #>   <chr>                                                <chr>           <chr>      <img>
 #> 1 demo_images/DIV14Actin-01-Airyscan Processing-02.tif Alexa Fluor 647 #FF00FF max of 7
@@ -190,7 +190,7 @@ first:
 stack |>
   filter(z %in% 3:5) |>
   summarise(img = max(img), .by = channel)
-#> # A tibble: 4 x 2
+#> # A tibble: 4 × 2
 #>   channel              img
 #>   <chr>              <img>
 #> 1 Alexa Fluor 647 max of 3
@@ -209,7 +209,7 @@ projections <- stack |>
   summarise(max = max(img), mean = mean(img), min = min(img), .by = c(channel, color)) |>
   pivot_longer(c(max, mean, min), names_to = "projection", values_to = "img")
 projections
-#> # A tibble: 3 x 4
+#> # A tibble: 3 × 4
 #>   channel       color   projection       img
 #>   <chr>         <chr>   <chr>          <img>
 #> 1 Hoechst 33258 #0000FF max         max of 7
@@ -243,7 +243,7 @@ cells <- images |>
   left_join(targets, by = "channel")
 
 cells |> select(mutant, channel, target, color, img)
-#> # A tibble: 6 x 5
+#> # A tibble: 6 × 5
 #>   mutant channel         target    color      img
 #>   <chr>  <chr>           <chr>     <chr>    <img>
 #> 1 I56A   Cy3             HA-BCL-xL #FF00FF page 1
@@ -271,10 +271,10 @@ cells |>
   mutate(color = case_match(channel, "Cy3" ~ "#E69F00", "Alexa Fluor 488" ~ "#56B4E9", "DAPI" ~ "#FFFFFF")) |>
   peek(label = target)
 #> Warning: There was 1 warning in `mutate()`.
-#> i In argument: `color = case_match(...)`.
+#> ℹ In argument: `color = case_match(...)`.
 #> Caused by warning:
 #> ! `case_match()` was deprecated in dplyr 1.2.0.
-#> i Please use `recode_values()` instead.
+#> ℹ Please use `recode_values()` instead.
 ```
 
 ![](man/figures/README-recolor-1.png)<!-- -->
@@ -287,11 +287,11 @@ Images only support operations that make sense for images:
 # summing intensities across images is not a projection
 stack |> summarise(img = sum(img), .by = channel)
 #> Error in `summarise()`:
-#> i In argument: `img = sum(img)`.
-#> i In group 1: `channel = "Alexa Fluor 647"`.
+#> ℹ In argument: `img = sum(img)`.
+#> ℹ In group 1: `channel = "Alexa Fluor 647"`.
 #> Caused by error:
 #> ! `sum()` is not supported for images.
-#> i Use `max()`, `min()` or `mean()` to project images.
+#> ℹ Use `max()`, `min()` or `mean()` to project images.
 
 # images have no natural order
 stack |> arrange(img)
@@ -301,8 +301,8 @@ stack |> arrange(img)
 # projecting images of different sizes (2024 x 2024 and 1796 x 1796 pixels)
 images |> summarise(img = max(img), .by = channel_index)
 #> Error in `summarise()`:
-#> i In argument: `img = max(img)`.
-#> i In group 1: `channel_index = 1`.
+#> ℹ In argument: `img = max(img)`.
+#> ℹ In group 1: `channel_index = 1`.
 #> Caused by error:
 #> ! Can't compute `max()` of images with different sizes.
 ```
@@ -371,6 +371,23 @@ montage
 ```
 
 <img src="man/figures/README-montage-row.png" alt="" width="340" />
+
+### Overlays: where channels coincide
+
+`add_overlay()` adds a panel that is bright only where all of its
+channels are bright, in a single colour. It is the minimum of the
+channels’ display- scaled intensities, so it is as bright as the weakest
+channel and isn’t stretched again: a faint overlap looks faint.
+
+``` r
+cells |>
+  tidymontage(x = mutant, channel = c("merge", "overlap")) |>
+  add_merge(Cy3, `Alexa Fluor 488`) |>
+  add_overlay(Cy3, `Alexa Fluor 488`, name = "overlap", color = "yellow") |>
+  add_color_legend()
+```
+
+<img src="man/figures/README-overlay.png" alt="" width="358" />
 
 ### Black channels: dark signal on white
 
@@ -581,14 +598,15 @@ cat(format(montage), sep = "\n")
 #>   2. adjust_exposure(min = "p0.1", max = "p99.8", .by = channel)
 #>   3. add_merge(`Alexa Fluor 647`, `Alexa Fluor 555`, `Alexa Fluor 488`, `Hoechst 33258`, name = "merge")
 montage_panels(montage)
-#> # A tibble: 5 x 14
-#>     col   row channel view   xmin  ymin  xmax  ymax merge background px_xmin px_xmax px_ymin px_ymax
-#>   <int> <int> <chr>   <chr> <dbl> <dbl> <dbl> <dbl> <lgl> <chr>        <dbl>   <dbl>   <dbl>   <dbl>
-#> 1     1     1 Alexa ~ full    0    4.69  17.2  21.9 FALSE black            1    2024       1    2024
-#> 2     2     1 Alexa ~ full   18.2  4.69  35.4  21.9 FALSE black            1    2024       1    2024
-#> 3     3     1 Alexa ~ full   36.4  4.69  53.6  21.9 FALSE black            1    2024       1    2024
-#> 4     4     1 Hoechs~ full   54.6  4.69  71.8  21.9 FALSE black            1    2024       1    2024
-#> 5     5     1 merge   full   72.8  4.69  90    21.9 TRUE  black            1    2024       1    2024
+#> # A tibble: 5 × 15
+#>     col   row channel view   xmin  ymin  xmax  ymax merge overlay background px_xmin px_xmax px_ymin
+#>   <int> <int> <chr>   <chr> <dbl> <dbl> <dbl> <dbl> <lgl> <lgl>   <chr>        <dbl>   <dbl>   <dbl>
+#> 1     1     1 Alexa … full    0    4.69  17.2  21.9 FALSE FALSE   black            1    2024       1
+#> 2     2     1 Alexa … full   18.2  4.69  35.4  21.9 FALSE FALSE   black            1    2024       1
+#> 3     3     1 Alexa … full   36.4  4.69  53.6  21.9 FALSE FALSE   black            1    2024       1
+#> 4     4     1 Hoechs… full   54.6  4.69  71.8  21.9 FALSE FALSE   black            1    2024       1
+#> 5     5     1 merge   full   72.8  4.69  90    21.9 TRUE  FALSE   black            1    2024       1
+#> # ℹ 1 more variable: px_ymax <dbl>
 ```
 
 Like plots in tidyplots, montages have a **fixed physical size**: by
@@ -615,22 +633,22 @@ doesn’t:
 cells |> tidymontage(x = channel) |> montage_panels()
 #> Error in `montage_panels()`:
 #> ! 2 images would share one panel (channel = Cy3).
-#> i Each panel shows one image. Summarise z-slices or time points first, e.g. `summarise(img =
+#> ℹ Each panel shows one image. Summarise z-slices or time points first, e.g. `summarise(img =
 #>   max(img), .by = ...)`, or map another column such as filepath to `x` or `y`.
 
 # levels can be chosen and ordered
 cells |>
   tidymontage(x = mutant, channel = "DAPI") |>
   montage_panels()
-#> # A tibble: 2 x 15
-#>     col   row channel view  mutant  xmin  ymin  xmax  ymax merge background px_xmin px_xmax px_ymin
-#>   <int> <int> <chr>   <chr> <chr>  <dbl> <dbl> <dbl> <dbl> <lgl> <chr>        <dbl>   <dbl>   <dbl>
-#> 1     1     1 DAPI    full  I56A     0    4.69  44.5  49.2 FALSE black            1    1796       1
-#> 2     2     1 DAPI    full  L59A    45.5  4.69  90    49.2 FALSE black            1    1796       1
-#> # i 1 more variable: px_ymax <dbl>
+#> # A tibble: 2 × 16
+#>     col   row channel view  mutant  xmin  ymin  xmax  ymax merge overlay background px_xmin px_xmax
+#>   <int> <int> <chr>   <chr> <chr>  <dbl> <dbl> <dbl> <dbl> <lgl> <lgl>   <chr>        <dbl>   <dbl>
+#> 1     1     1 DAPI    full  I56A     0    4.69  44.5  49.2 FALSE FALSE   black            1    1796
+#> 2     2     1 DAPI    full  L59A    45.5  4.69  90    49.2 FALSE FALSE   black            1    1796
+#> # ℹ 2 more variables: px_ymin <dbl>, px_ymax <dbl>
 
 # unlinking display ranges across channels is possible, but flagged
 invisible(autoplot(tidymontage(cells, x = mutant) |> adjust_exposure(.by = mutant)))
 #> Warning in autoplot(adjust_exposure(tidymontage(cells, x = mutant), .by = mutant)): A display range is shared by several channels.
-#> i Display ranges are usually linked per channel: include channel in `.by` of `adjust_exposure()`.
+#> ℹ Display ranges are usually linked per channel: include channel in `.by` of `adjust_exposure()`.
 ```

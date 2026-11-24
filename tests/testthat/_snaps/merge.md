@@ -15,12 +15,12 @@
       add_merge(m, DAPI, GFP, name = "DAPI")
     Condition
       Error in `add_merge()`:
-      ! `name` "DAPI" is already used by a channel or another merge.
+      ! `name` "DAPI" is already used by a channel, merge or overlay.
     Code
       add_merge(add_merge(m, DAPI, GFP), DAPI, GFP)
     Condition
       Error in `add_merge()`:
-      ! `name` "merge" is already used by a channel or another merge.
+      ! `name` "merge" is already used by a channel, merge or overlay.
     Code
       add_merge(m, DAPI, GFP, name = "")
     Condition

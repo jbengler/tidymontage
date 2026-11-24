@@ -1,12 +1,3 @@
-unpack_rgb <- function(r) {
-  v <- as.numeric(unclass(r)) + 2^32 * (unclass(r) < 0)
-  list(
-    red = matrix(v %% 256, nrow(r), byrow = TRUE),
-    green = matrix((v %/% 256) %% 256, nrow(r), byrow = TRUE),
-    blue = matrix((v %/% 65536) %% 256, nrow(r), byrow = TRUE)
-  )
-}
-
 test_that("light adds colours, black channels invert on white", {
   v <- list(matrix(c(0, 0.5, 1), 1), matrix(c(1, 1, 0), 1))
   light <- compose_panel(v, c("#FF0000", "#00FF00"), "black")

@@ -283,6 +283,21 @@ montage <- projected |>
 montage
 ```
 
+### Overlays: where channels coincide
+
+`add_overlay()` adds a panel that is bright only where all of its channels
+are bright, in a single colour. It is the minimum of the channels' display-
+scaled intensities, so it is as bright as the weakest channel and isn't
+stretched again: a faint overlap looks faint.
+
+```{r overlay}
+cells |>
+  tidymontage(x = mutant, channel = c("merge", "overlap")) |>
+  add_merge(Cy3, `Alexa Fluor 488`) |>
+  add_overlay(Cy3, `Alexa Fluor 488`, name = "overlap", color = "yellow") |>
+  add_color_legend()
+```
+
 ### Black channels: dark signal on white
 
 A channel coloured black is shown inverted: dark signal on a white

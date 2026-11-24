@@ -30,3 +30,14 @@ local_montage_images <- function(env = parent.frame()) {
   images$condition <- sub("\\.tif$", "", basename(images$filepath))
   images
 }
+
+# Red, green and blue matrices of a nativeRaster.
+unpack_rgb <- function(r) {
+  v <- as.numeric(unclass(r)) + 2^32 * (unclass(r) < 0)
+  list(
+    red = matrix(v %% 256, nrow(r), byrow = TRUE),
+    green = matrix((v %/% 256) %% 256, nrow(r), byrow = TRUE),
+    blue = matrix((v %/% 65536) %% 256, nrow(r), byrow = TRUE)
+  )
+}
+

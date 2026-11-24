@@ -44,6 +44,12 @@ tidymontage(images, x = condition, y = NULL, ...,   # ... chooses levels
   of dimensions; merges and zooms added later become levels of `channel` and
   `view` when the montage is built (lazily), so the order of verbs doesn't
   matter.
+- **Overlay** = virtual channel like a merge (`add_overlay(GFP, Cy3, name,
+  color = "white", threshold = NULL)`): the minimum of the members'
+  display-scaled (0-1) intensities, in one colour, not stretched again;
+  optional threshold on the 0-1 scale. Black -> inverted. Legend entry
+  "name (GFP, Cy3)". Not counted as a merge for hero defaults, boxes or
+  scale bars (`"merge"`).
 - **Merge** = virtual channel. Merges combine the rows sharing a panel cell
   (all dimensions except channel). Member channels need not be shown.
 - **Exposure** is a display property, linked per channel by default.

@@ -140,7 +140,8 @@ montage_panels <- function(montage) {
   check_tidymontage(montage)
   space <- montage_layout_space(montage, call = rlang::current_env())
   p <- space$panels
-  p$merge <- p$.is_merge
+  p$merge <- p$.is_merge & !p$.is_overlay
+  p$overlay <- p$.is_overlay
   p$background <- p$.background
   if (".role" %in% names(p)) p$role <- p$.role
   p$px_xmin <- p$.x0

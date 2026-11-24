@@ -63,7 +63,7 @@ legend_items <- function(panels, images, colors) {
   items <- items[, c("channel", "color")]
   extra <- NULL
   if (".colors" %in% names(panels)) {
-    merges <- panels[panels$.is_merge & !duplicated(panels$channel), , drop = FALSE]
+    merges <- panels[panels$.is_merge & !panels$.is_overlay & !duplicated(panels$channel), , drop = FALSE]
     for (i in seq_len(nrow(merges))) {
       members <- as.character(images$channel[merges$.sources[[i]]])
       differ <- to_hex(merges$.colors[[i]]) != to_hex(items$color[match(members, items$channel)])
@@ -72,6 +72,17 @@ legend_items <- function(panels, images, colors) {
           merge = merges$channel[i], channel = members[differ], color = merges$.colors[[i]][differ]
         ))
       }
+    }
+  }
+  # overlays get one entry each: "overlay (GFP, Cy3)"
+  if (".is_overlay" %in% names(panels)) {
+    ov <- panels[panels$.is_overlay & !duplicated(panels$channel), , drop = FALSE]
+    for (i in seq_len(nrow(ov))) {
+      members <- as.character(images$channel[ov$.sources[[i]]])
+      items <- rbind(items, tibble::tibble(
+        channel = paste0(ov$channel[i], " (", paste(members, collapse = ", "), ")"),
+        color = ov$.colors[[i]][1]
+      ))
     }
   }
   items <- items[!is_black(items$color), , drop = FALSE]
@@ -93,13 +104,14 @@ legend_items <- function(panels, images, colors) {
 # at the bottom wrap into rows no wider than the panels (`max_width`).
 legend_extent <- function(items, lg, max_width = Inf) {
   if (is.null(lg) || is.null(items) || nrow(items) == 0) {
-    return(list(top = 0, bottom = 0, right = 0))
+    return(list(top = 0, bottom = 0, right = 0, left = 0))
   }
   dims <- legend_dims(items, lg, max_width)
   list(
     top = if (lg$position == "top") dims$height else 0,
     bottom = if (lg$position == "bottom") dims$height else 0,
-    right = if (lg$position == "right") dims$width else 0
+    right = if (lg$position == "right") dims$width else 0,
+    left = 0
   )
 }
 
