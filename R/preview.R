@@ -176,7 +176,7 @@ preview_positions <- function(montage, ...) {
       preview <- add_step(preview, step)
     }
   }
-  add_step(preview, new_step("preview_positions", list(crop = spec$crop, zoom = spec$zooms[1][[1]])))
+  add_step(preview, new_step("preview_positions", list(crop = spec$crop, zooms = unname(spec$zooms))))
 }
 
 # Grid lines, axis labels and region outlines of a positions preview (mm).
@@ -201,8 +201,7 @@ preview_positions_overlay <- function(panels, data, images, pp, call) {
     )
     row <- data[p$.row, , drop = FALSE]
     node <- vctrs::vec_data(images$img[p$.sources[[1]]])[[1]]$node
-    for (what in c("crop", "zoom")) {
-      view <- pp[[what]]
+    for (view in c(list(pp$crop), pp$zooms)) {
       if (is.null(view)) next
       r <- tryCatch(view_region(view, row, node, call), error = function(e) NULL)
       if (is.null(r)) next
@@ -211,7 +210,7 @@ preview_positions_overlay <- function(panels, data, images, pp, call) {
       rects[[length(rects) + 1]] <- data.frame(
         xmin = p$xmin + (r[1] - 1) * sx, xmax = p$xmin + r[2] * sx,
         ymin = p$ymin + (r[3] - 1) * sy, ymax = p$ymin + r[4] * sy,
-        label = what, color = ink
+        label = view$name, color = ink
       )
     }
   }

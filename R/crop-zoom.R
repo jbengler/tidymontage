@@ -55,9 +55,19 @@ add_crop <- function(montage, width, height = width, center = c(0.5, 0.5),
 #' blow-ups share one magnification, and positions are centers relative to the
 #' full image by default.
 #'
+#' Call `add_zoom()` again for more zooms. With two or more, they are numbered
+#' in the order they were added: the number is shown in the top-left corner of
+#' each box and of each panel of that zoom, and the views are named
+#' `"zoom 1"`, `"zoom 2"`, ... unless `name` is given.
+#'
 #' @inheritParams add_crop
+#' @param name Name of the view in the layout. By default `"zoom"`, or
+#'   `"zoom 1"`, `"zoom 2"`, ... if the montage has several zooms.
 #' @param box Where to draw the box that marks the region on the main panels:
 #'   on `"all"` panels, only on `"merge"` panels, or `"none"`.
+#' @param label Label shown in the box and in the zoom panels. By default the
+#'   number of the zoom if the montage has several, otherwise none. A string
+#'   sets your own label; `NA` shows none.
 #'
 #' @returns The montage with the zoom step added.
 #' @examples
@@ -66,16 +76,25 @@ add_crop <- function(montage, width, height = width, center = c(0.5, 0.5),
 #'   add_crop(width = 40) |>
 #'   add_zoom(width = 8, center = c(0.45, 0.6)) |>
 #'   layout_grid(x = channel, y = view)
+#'
+#' # two numbered zooms
+#' montage |>
+#'   add_zoom(width = 8, center = c(0.45, 0.6)) |>
+#'   add_zoom(width = 8, center = c(0.7, 0.3))
 #' }
 #' @export
 add_zoom <- function(montage, width, height = width, center = c(0.5, 0.5),
-                     units = c("um", "px"), center_units = c("rel", "px"), name = "zoom",
-                     box = c("all", "merge", "none")) {
+                     units = c("um", "px"), center_units = c("rel", "px"), name = NULL,
+                     box = c("all", "merge", "none"), label = NULL) {
   check_tidymontage(montage)
   view <- new_view_spec(
     width, height, center, rlang::arg_match(units), rlang::arg_match(center_units), name, montage
   )
   view$box <- rlang::arg_match(box)
+  if (!is.null(label) && !(length(label) == 1 && (is.na(label) || is.character(label)))) {
+    cli::cli_abort("{.arg label} must be a single string or {.code NA}.")
+  }
+  view$label <- if (is.null(label)) NULL else as.character(label)
   add_step(montage, new_step("add_zoom", view))
 }
 
@@ -87,14 +106,17 @@ new_view_spec <- function(width, height, center, units, center_units, name, mont
       cli::cli_abort("{.arg {arg}} must be a single positive number.", call = call)
     }
   }
-  if (!rlang::is_string(name) || !nzchar(name)) {
-    cli::cli_abort("{.arg name} must be a single non-empty string.", call = call)
-  }
-  # A new crop replaces an earlier one, so only other views can clash.
-  view_steps <- setdiff(c("add_crop", "add_zoom"), replaces)
-  used <- unlist(lapply(montage$steps, function(s) if (s$type %in% view_steps) s$params$name))
-  if (name %in% c(used, "full")) {
-    cli::cli_abort("The view name {.val {name}} is already used.", call = call)
+  # zooms without a name are named when the montage is built
+  if (!is.null(name)) {
+    if (!rlang::is_string(name) || !nzchar(name)) {
+      cli::cli_abort("{.arg name} must be a single non-empty string.", call = call)
+    }
+    # A new crop replaces an earlier one, so only other views can clash.
+    view_steps <- setdiff(c("add_crop", "add_zoom"), replaces)
+    used <- unlist(lapply(montage$steps, function(s) if (s$type %in% view_steps) s$params$name))
+    if (name %in% c(used, "full")) {
+      cli::cli_abort("The view name {.val {name}} is already used.", call = call)
+    }
   }
   check_center(center, center_units, montage$images, call)
   list(
@@ -155,8 +177,9 @@ format_view_step <- function(x, verb) {
     paste0("center = ", center),
     if (p$units != "um") paste0("units = \"", p$units, "\""),
     if (p$center_units != "rel") paste0("center_units = \"", p$center_units, "\""),
-    paste0("name = \"", p$name, "\""),
-    if (!is.null(p$box) && p$box != "all") paste0("box = \"", p$box, "\"")
+    if (!is.null(p$name)) paste0("name = \"", p$name, "\""),
+    if (!is.null(p$box) && p$box != "all") paste0("box = \"", p$box, "\""),
+    if (!is.null(p$label)) paste0("label = ", if (is.na(p$label)) "NA" else paste0("\"", p$label, "\""))
   )
   paste0(verb, "(", paste(args, collapse = ", "), ")")
 }

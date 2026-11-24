@@ -83,7 +83,7 @@ test_that("add_crop() and add_zoom() validate their arguments", {
     add_crop(m, width = 1, center = data.frame(genotype = "a", x = 0.5, y = 0.5))
     add_crop(m, width = 1, units = "mm")
     add_zoom(m, width = 1, name = "full")
-    add_zoom(add_zoom(m, width = 1), width = 2)
+    add_zoom(add_zoom(m, width = 1, name = "a"), width = 2, name = "a")
     add_zoom(m, width = 1, box = "some")
   })
 })
@@ -165,7 +165,7 @@ test_that("crop and zoom steps print as calls", {
   expect_equal(format(m$steps[[1]]), 'add_crop(width = 40, center = <2 centers by condition>, name = "crop")')
   expect_equal(
     format(m$steps[[2]]),
-    'add_zoom(width = 8, height = 6, center = c(10, 20), units = "px", center_units = "px", name = "zoom", box = "merge")'
+    'add_zoom(width = 8, height = 6, center = c(10, 20), units = "px", center_units = "px", box = "merge")'
   )
 })
 
@@ -178,4 +178,53 @@ test_that("crops and zooms render consistently", {
     add_crop(width = 0.6, center = c(0.4, 0.5)) |>
     add_zoom(width = 0.2, center = c(0.45, 0.5)) |> adjust_layout(x = c(view, condition), y = channel)
   vdiffr::expect_doppelganger("crop and zoom", drawing(m))
+})
+
+test_that("several zooms are named and numbered in order", {
+  m <- tidymontage(local_montage_images(), x = c(condition, view), channel = "C1") |>
+    add_zoom(width = 4, height = 3.2, center = c(0.3, 0.3), units = "px") |>
+    add_zoom(width = 4, height = 3.2, center = c(0.7, 0.6), units = "px", box = "none")
+  s <- montage_layout_space(m, call = NULL)
+  expect_equal(unique(s$panels$view), c("full", "zoom 1", "zoom 2"))
+  # numbers in the boxes (only zoom 1 has boxes) and in the zoom panels
+  expect_equal(unique(s$boxes$label), "1")
+  zl <- s$zoom_labels
+  expect_equal(zl$label, ifelse(s$panels$view[s$panels$view != "full"] == "zoom 1", "1", "2"))
+  zp <- s$panels[s$panels$view != "full", ]
+  expect_equal(c(zl$x, zl$y), c(zp$xmin, zp$ymin))
+  el <- montage_elements(m)
+  expect_true(all(c("zoom-box-label-1", "zoom-label-1") %in% names(el)))
+  # white text on a black square
+  expect_equal(el[["zoom-label-1"]]$gp$col, "white")
+  expect_equal(el[["zoom-label-1"]]$gp$fontsize, 7)
+  expect_equal(el[["zoom-label-1-square"]]$gp$fill, "black")
+  # the box is drawn over the squares in it
+  expect_gt(match("zoom-boxes", names(el)), match("zoom-box-label-1", names(el)))
+
+  # one zoom: no number, named "zoom"
+  one <- tidymontage(local_montage_images(), x = c(condition, view), channel = "C1") |>
+    add_zoom(width = 4, height = 3.2, units = "px")
+  s <- montage_layout_space(one, call = NULL)
+  expect_null(s$zoom_labels)
+  expect_true(all(is.na(s$boxes$label)))
+  expect_true("zoom" %in% s$panels$view)
+})
+
+test_that("zoom names and labels can be set", {
+  m <- tidymontage(local_montage_images(), x = c(condition, view), channel = "C1") |>
+    add_zoom(width = 4, height = 3.2, units = "px", name = "spine", label = "a") |>
+    add_zoom(width = 4, height = 3.2, center = c(0.7, 0.6), units = "px", label = NA)
+  s <- montage_layout_space(m, call = NULL)
+  expect_equal(unique(s$panels$view), c("full", "spine", "zoom 2"))
+  expect_equal(unique(s$zoom_labels$label), "a")
+  expect_equal(sort(unique(s$boxes$label), na.last = TRUE), c("a", NA))
+  expect_match(format(m$steps[[1]]), 'name = "spine", label = "a"', fixed = TRUE)
+  expect_match(format(m$steps[[2]]), "label = NA", fixed = TRUE)
+
+  expect_error(add_zoom(m, width = 4, label = 1), "single string")
+  # an explicit name that the automatic names take
+  clash <- tidymontage(local_montage_images()) |>
+    add_zoom(width = 4, units = "px", name = "zoom 2") |>
+    add_zoom(width = 4, units = "px")
+  expect_error(montage_layout_space(clash, call = NULL), "used twice")
 })

@@ -138,6 +138,7 @@ montage_boxes <- function(space, panels, images, views, call = rlang::caller_env
       b <- as.data.frame(as.list(b))
       # boxes contrast with the panel: black on light panels
       b$color <- ink_on(panels$.background[i])
+      b$label <- z$label %||% NA_character_
       boxes[[length(boxes) + 1]] <- b
     }
   }
@@ -149,3 +150,22 @@ montage_boxes <- function(space, panels, images, views, call = rlang::caller_env
   }
   if (length(boxes) == 0) NULL else do.call(rbind, boxes)
 }
+
+# Labels of numbered zooms in the top-left corner of their panels, in mm.
+montage_zoom_labels <- function(panels, views) {
+  labels <- vapply(views, function(v) v$label %||% NA_character_, character(1))
+  labels <- labels[!is.na(labels)]
+  on <- which(panels$view %in% names(labels))
+  if (length(on) == 0) {
+    return(NULL)
+  }
+  data.frame(
+    x = panels$xmin[on],
+    y = panels$ymin[on],
+    label = unname(labels[panels$view[on]])
+  )
+}
+
+# Zoom labels: white text, in the size of scale bar labels, on a black
+# square in the top-left corner of the box or panel (side in mm).
+zoom_label_style <- list(size = 7, color = "white", fill = "black", side = 3)

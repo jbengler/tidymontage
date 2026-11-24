@@ -41,7 +41,7 @@ montage_spec <- function(montage) {
     } else if (step$type == "add_crop") {
       spec$crop <- p
     } else if (step$type == "add_zoom") {
-      spec$zooms[[p$name]] <- p
+      spec$zooms <- c(spec$zooms, list(p))
     } else if (step$type == "add_arrows") {
       spec$arrows <- c(spec$arrows, list(p))
     } else if (step$type == "add_scale_bar") {
@@ -57,7 +57,29 @@ montage_spec <- function(montage) {
     }
   }
   check_xy(spec$mapping$x, spec$mapping$y, call = NULL)
+  spec$zooms <- name_zooms(spec$zooms, spec$crop$name)
   spec
+}
+
+# Zooms without a name are "zoom", or "zoom 1", "zoom 2", ... if there are
+# several; with several, each is numbered in its box and panels.
+name_zooms <- function(zooms, main = NULL) {
+  n <- length(zooms)
+  for (k in seq_len(n)) {
+    z <- zooms[[k]]
+    z$name <- z$name %||% if (n == 1) "zoom" else paste("zoom", k)
+    z$label <- z$label %||% if (n == 1) NA_character_ else as.character(k)
+    zooms[[k]] <- z
+  }
+  names(zooms) <- vapply(zooms, `[[`, character(1), "name")
+  dup <- names(zooms)[duplicated(c(main %||% "full", names(zooms)))[-1]]
+  if (length(dup) > 0) {
+    cli::cli_abort(
+      "The view name {.val {dup[1]}} is used twice. Give the zooms other names with {.arg name}.",
+      call = NULL
+    )
+  }
+  zooms
 }
 
 # Views: the main view (full image or crop) first, then the zooms.

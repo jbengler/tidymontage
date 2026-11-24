@@ -55,7 +55,7 @@ montage_build <- function(montage, dpi = 150, call = rlang::caller_env()) {
   list(
     panels = panels, labels = space$labels, lines = space$lines, boxes = space$boxes,
     scale_bars = space$scale_bars, headers = space$headers, legend = legend, preview = space$preview,
-    arrows = space$arrows,
+    arrows = space$arrows, zoom_labels = space$zoom_labels,
     side_labels = space$side_labels,
     width = space$width, height = space$height, rasters = rasters
   )
@@ -119,6 +119,7 @@ montage_layout_space <- function(montage, spec = montage_spec(montage), views = 
     lines = geom$lines,
     side_labels = geom$side_labels,
     boxes = montage_boxes(space, geom$panels, images, views, call = call),
+    zoom_labels = montage_zoom_labels(geom$panels, views),
     arrows = montage_arrows(space, geom$panels, images, spec$arrows),
     scale_bars = montage_scale_bars(geom$panels, images, spec$scale_bar, call = call),
     headers = spec$headers,

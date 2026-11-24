@@ -126,8 +126,8 @@ test_that("scale bars have an outline and a halo unless switched off", {
   with_outline <- montage_elements(add_scale_bar(m))
   without <- montage_elements(add_scale_bar(m, outline = NA))
   # 12 halo copies of the label
-  expect_equal(sum(startsWith(names(with_outline), "scale-bar-halo")), 12)
-  expect_equal(sum(startsWith(names(without), "scale-bar-halo")), 0)
+  expect_equal(sum(grepl("^scale-bar-label-1-halo-", names(with_outline))), 12)
+  expect_equal(sum(grepl("-halo-", names(without))), 0)
   expect_equal(with_outline[["scale-bars"]]$gp$col, "black")
   expect_true(is.na(without[["scale-bars"]]$gp$col))
 })

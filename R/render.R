@@ -65,6 +65,36 @@ montage_grob <- function(b) {
     }
   }
 
+  # Text with a halo: drawn in the outline colour around its position, then
+  # on top. Used by scale bar labels and zoom numbers, so they look the same.
+  halo_text <- function(name, label, x, y, hjust, vjust, size, col, outline) {
+    if (!is.na(outline)) {
+      angles <- seq(0, 2 * pi, length.out = 13)[-13]
+      for (j in seq_along(angles)) {
+        add(text(paste0(name, "-halo-", j), label, x + 0.12 * cos(angles[j]), y - 0.12 * sin(angles[j]),
+                 hjust = hjust, vjust = vjust, fontsize = size, col = outline))
+      }
+    }
+    add(text(name, label, x, y, hjust = hjust, vjust = vjust, fontsize = size, col = col))
+  }
+
+  # Zoom numbers: white text on a black square whose top-left corner is at
+  # (x, y); the square widens for longer labels.
+  tag <- function(name, label, x, y) {
+    st <- zoom_label_style
+    gp <- grid::gpar(fontsize = st$size)
+    w <- max(grid::unit(st$side, "mm"), grid::grobWidth(grid::textGrob(label, gp = gp)) + grid::unit(st$side * 0.5, "mm"))
+    h <- grid::unit(st$side, "mm")
+    add(grid::rectGrob(
+      x = n(x), y = n(H - y), width = w, height = h, just = c("left", "top"),
+      gp = grid::gpar(fill = st$fill, col = NA), name = paste0(name, "-square")
+    ))
+    add(grid::textGrob(
+      label, x = n(x) + w * 0.5, y = n(H - y) - h * 0.5,
+      gp = grid::gpar(fontsize = st$size, col = st$color), name = name
+    ))
+  }
+
   p <- b$panels
   for (i in seq_len(nrow(p))) {
     add(grid::rasterGrob(
@@ -105,7 +135,14 @@ montage_grob <- function(b) {
   }
   if (!is.null(b$boxes) && nrow(b$boxes) > 0) {
     bx <- b$boxes
+    # numbers first, so the box line runs over the edge of their squares
+    bl <- bx[!is.na(bx$label %||% NA), , drop = FALSE]
+    for (k in seq_len(nrow(bl))) tag(paste0("zoom-box-label-", k), bl$label[k], bl$xmin[k], bl$ymin[k])
     add(rect("zoom-boxes", bx$xmin, bx$xmax, bx$ymin, bx$ymax, col = bx$color %||% "white", fill = NA, lwd = lwd(0.25)))
+  }
+  if (!is.null(b$zoom_labels)) {
+    zl <- b$zoom_labels
+    for (k in seq_len(nrow(zl))) tag(paste0("zoom-label-", k), zl$label[k], zl$x[k], zl$y[k])
   }
   if (!is.null(b$arrows)) {
     # each panel's arrowheads are clipped to the panel
@@ -133,20 +170,8 @@ montage_grob <- function(b) {
              fill = st$color, col = if (is.na(outline)) NA else outline, lwd = lwd(0.15)))
     if (isTRUE(st$label)) {
       for (k in seq_len(nrow(sb))) {
-        label <- parse(text = sb$label[k])
-        if (!is.na(outline)) {
-          # a halo: the label drawn in the outline colour around its position
-          angles <- seq(0, 2 * pi, length.out = 13)[-13]
-          for (j in seq_along(angles)) {
-            add(text(
-              paste0("scale-bar-halo-", k, "-", j), label,
-              sb$label_x[k] + 0.12 * cos(angles[j]), sb$label_y[k] - 0.12 * sin(angles[j]),
-              hjust = sb$label_hjust[k], vjust = sb$label_vjust[k], fontsize = st$size, col = outline
-            ))
-          }
-        }
-        add(text(paste0("scale-bar-label-", k), label, sb$label_x[k], sb$label_y[k],
-                 hjust = sb$label_hjust[k], vjust = sb$label_vjust[k], fontsize = st$size, col = st$color))
+        halo_text(paste0("scale-bar-label-", k), parse(text = sb$label[k]), sb$label_x[k], sb$label_y[k],
+                  sb$label_hjust[k], sb$label_vjust[k], st$size, st$color, outline)
       }
     }
   }

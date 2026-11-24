@@ -11,8 +11,9 @@ add_zoom(
   center = c(0.5, 0.5),
   units = c("um", "px"),
   center_units = c("rel", "px"),
-  name = "zoom",
-  box = c("all", "merge", "none")
+  name = NULL,
+  box = c("all", "merge", "none"),
+  label = NULL
 )
 }
 \arguments{
@@ -30,10 +31,15 @@ known pixel size) or \code{"px"} (pixels).}
 
 \item{center_units}{Units of \code{center}: \code{"rel"} (relative, 0-1) or \code{"px"}.}
 
-\item{name}{Name of the view in the layout.}
+\item{name}{Name of the view in the layout. By default \code{"zoom"}, or
+\code{"zoom 1"}, \code{"zoom 2"}, ... if the montage has several zooms.}
 
 \item{box}{Where to draw the box that marks the region on the main panels:
 on \code{"all"} panels, only on \code{"merge"} panels, or \code{"none"}.}
+
+\item{label}{Label shown in the box and in the zoom panels. By default the
+number of the zoom if the montage has several, otherwise none. A string
+sets your own label; \code{NA} shows none.}
 }
 \value{
 The montage with the zoom step added.
@@ -48,6 +54,11 @@ to show them next to the main panels, or choose them with
 As for \code{\link[=add_crop]{add_crop()}}, the size is the same for all images, so all
 blow-ups share one magnification, and positions are centers relative to the
 full image by default.
+
+Call \code{add_zoom()} again for more zooms. With two or more, they are numbered
+in the order they were added: the number is shown in the top-left corner of
+each box and of each panel of that zoom, and the views are named
+\code{"zoom 1"}, \code{"zoom 2"}, ... unless \code{name} is given.
 }
 \examples{
 \dontrun{
@@ -55,5 +66,10 @@ montage |>
   add_crop(width = 40) |>
   add_zoom(width = 8, center = c(0.45, 0.6)) |>
   layout_grid(x = channel, y = view)
+
+# two numbered zooms
+montage |>
+  add_zoom(width = 8, center = c(0.45, 0.6)) |>
+  add_zoom(width = 8, center = c(0.7, 0.3))
 }
 }

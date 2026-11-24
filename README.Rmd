@@ -414,6 +414,25 @@ cells |>
   add_zoom(width = 20, center = zooms)
 ```
 
+Call `add_zoom()` again for more zooms. With two or more, each zoom gets a
+number, shown in the top-left corner of its boxes and its panels, and the
+views are named `"zoom 1"`, `"zoom 2"`, and so on:
+
+```{r zoom-numbered}
+zooms_2 <- tribble(
+  ~mutant, ~x,   ~y,
+  "I56A",  0.40, 0.55,
+  "L59A",  0.52, 0.62
+)
+
+cells |>
+  tidymontage(x = view, y = mutant, channel = "merge") |>
+  add_merge(Cy3, `Alexa Fluor 488`, DAPI) |>
+  add_crop(width = 60, center = crops) |>
+  add_zoom(width = 15, center = zooms) |>
+  add_zoom(width = 15, center = zooms_2)
+```
+
 ### Arrowheads
 
 `add_arrows()` points at locations with arrowheads. An arrowhead belongs to an

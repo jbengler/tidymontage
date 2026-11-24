@@ -37,10 +37,10 @@
       Error in `add_zoom()`:
       ! The view name "full" is already used.
     Code
-      add_zoom(add_zoom(m, width = 1), width = 2)
+      add_zoom(add_zoom(m, width = 1, name = "a"), width = 2, name = "a")
     Condition
       Error in `add_zoom()`:
-      ! The view name "zoom" is already used.
+      ! The view name "a" is already used.
     Code
       add_zoom(m, width = 1, box = "some")
     Condition
