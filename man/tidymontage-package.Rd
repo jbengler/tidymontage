@@ -5,7 +5,7 @@
 \alias{tidymontage-package}
 \title{tidymontage: Tidy Microscopy Montages for Scientific Papers}
 \description{
-The goal of 'tidymontage' is to streamline the creation of publication-ready microscopy figure montages. Images are described in a tidy data frame, and montage components such as projections, exposure, colours, merges, crops, zoom insets and scale bars are added with a consistent, pipeable syntax. Pixels are read lazily and the result is a 'ggplot2' object saved at an exact physical size.
+The goal of 'tidymontage' is to streamline the creation of publication-ready microscopy figure montages. Images are described in a tidy data frame, and montage components such as projections, exposure, colours, merges, crops, zooms and scale bars are added with a consistent, pipeable syntax. Pixels are read lazily, and montages are drawn and saved at an exact physical size.
 }
 \seealso{
 Useful links:
