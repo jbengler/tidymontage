@@ -255,7 +255,9 @@ the channels on the free axis:
 ```{r montage-grid}
 cells |>
   tidymontage(x = mutant)
+```
 
+```{r}
 cells |>
   tidymontage(y = mutant)
 ```
@@ -379,14 +381,18 @@ cells |>
   add_merge(Cy3, `Alexa Fluor 488`, DAPI) |>
   add_crop(width = 60, center = crops) |>
   add_zoom(width = 15, center = zooms, box = "merge")
+```
 
+```{r}
 cells |>
   tidymontage(x = mutant) |>
   add_merge(Cy3, `Alexa Fluor 488`, DAPI) |>
   add_crop(width = 60, center = crops) |>
   add_zoom(width = 15, center = zooms, box = "merge") |> 
   preview_positions()
+```
 
+```{r}
 cells |>
   tidymontage(x = mutant) |>
   add_merge(Cy3, `Alexa Fluor 488`, DAPI) |>
