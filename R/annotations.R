@@ -1,7 +1,7 @@
 #' Add scale bars
 #'
 #' Adds a scale bar to the panels of a montage. Panels of one view share the
-#' same magnification (see [adjust_crop()]), so by default one bar per view is
+#' same magnification (see [add_crop()]), so by default one bar per view is
 #' drawn, in the bottom-right panel of that view.
 #'
 #' Scale bars need a known pixel size. If the images of a view have different

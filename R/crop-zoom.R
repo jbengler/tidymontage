@@ -1,6 +1,6 @@
 #' Crop the images
 #'
-#' `adjust_crop()` shows a region of each image instead of the full image. The
+#' `add_crop()` shows a region of each image instead of the full image. The
 #' size of the region is the same for all images, so all panels share the same
 #' magnification; only its position can differ between images.
 #'
@@ -12,6 +12,9 @@
 #'
 #' Display ranges are always computed from the full images, so moving a crop
 #' doesn't change brightness.
+#'
+#' A montage has one crop: calling `add_crop()` again replaces the earlier
+#' crop. Use [add_zoom()] for further regions.
 #'
 #' @param montage A [tidymontage()] object.
 #' @param width,height Size of the region. In micrometres by default, which
@@ -28,17 +31,17 @@
 #' @examples
 #' \dontrun{
 #' centers <- tibble::tibble(condition = c("ctrl", "ko"), x = c(0.4, 0.6), y = c(0.5, 0.3))
-#' montage |> adjust_crop(width = 40, center = centers)
+#' montage |> add_crop(width = 40, center = centers)
 #' }
 #' @export
-adjust_crop <- function(montage, width, height = width, center = c(0.5, 0.5),
+add_crop <- function(montage, width, height = width, center = c(0.5, 0.5),
                         units = c("um", "px"), center_units = c("rel", "px"), name = "crop") {
   check_tidymontage(montage)
   view <- new_view_spec(
     width, height, center, rlang::arg_match(units), rlang::arg_match(center_units), name, montage,
-    replaces = "adjust_crop"
+    replaces = "add_crop"
   )
-  add_step(montage, new_step("adjust_crop", view))
+  add_step(montage, new_step("add_crop", view))
 }
 
 #' Add a blow-up of a region
@@ -48,11 +51,11 @@ adjust_crop <- function(montage, width, height = width, center = c(0.5, 0.5),
 #' to show them next to the main panels, or choose them with
 #' `layout_grid(view = "zoom")`. A box marks the region on the main panels.
 #'
-#' As for [adjust_crop()], the size is the same for all images, so all
+#' As for [add_crop()], the size is the same for all images, so all
 #' blow-ups share one magnification, and positions are centers relative to the
 #' full image by default.
 #'
-#' @inheritParams adjust_crop
+#' @inheritParams add_crop
 #' @param box Where to draw the box that marks the region on the main panels:
 #'   on `"all"` panels, only on `"merge"` panels, or `"none"`.
 #'
@@ -60,7 +63,7 @@ adjust_crop <- function(montage, width, height = width, center = c(0.5, 0.5),
 #' @examples
 #' \dontrun{
 #' montage |>
-#'   adjust_crop(width = 40) |>
+#'   add_crop(width = 40) |>
 #'   add_zoom(width = 8, center = c(0.45, 0.6)) |>
 #'   layout_grid(x = channel, y = view)
 #' }
@@ -88,7 +91,7 @@ new_view_spec <- function(width, height, center, units, center_units, name, mont
     cli::cli_abort("{.arg name} must be a single non-empty string.", call = call)
   }
   # A new crop replaces an earlier one, so only other views can clash.
-  view_steps <- setdiff(c("adjust_crop", "add_zoom"), replaces)
+  view_steps <- setdiff(c("add_crop", "add_zoom"), replaces)
   used <- unlist(lapply(montage$steps, function(s) if (s$type %in% view_steps) s$params$name))
   if (name %in% c(used, "full")) {
     cli::cli_abort("The view name {.val {name}} is already used.", call = call)
@@ -153,7 +156,7 @@ format_view_step <- function(x, verb) {
 }
 
 #' @export
-format.tidymontage_step_adjust_crop <- function(x, ...) format_view_step(x, "adjust_crop")
+format.tidymontage_step_add_crop <- function(x, ...) format_view_step(x, "add_crop")
 
 #' @export
 format.tidymontage_step_add_zoom <- function(x, ...) format_view_step(x, "add_zoom")

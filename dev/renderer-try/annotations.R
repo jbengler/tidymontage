@@ -8,7 +8,7 @@ zooms <- tibble(mutant = c("I56A", "L59A"), x = c(0.50, 0.40), y = c(0.33, 0.55)
 m <- cells |>
   tidymontage() |>
   add_merge(Cy3, `Alexa Fluor 488`, DAPI) |>
-  adjust_crop(width = 60, center = crops) |>
+  add_crop(width = 60, center = crops) |>
   add_zoom(width = 15, center = zooms, box = "merge") |>
   layout_grid(x = c(view, mutant), y = channel) |>
   add_scale_bar()

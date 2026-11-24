@@ -45,14 +45,14 @@ to show them next to the main panels, or choose them with
 \code{layout_grid(view = "zoom")}. A box marks the region on the main panels.
 }
 \details{
-As for \code{\link[=adjust_crop]{adjust_crop()}}, the size is the same for all images, so all
+As for \code{\link[=add_crop]{add_crop()}}, the size is the same for all images, so all
 blow-ups share one magnification, and positions are centers relative to the
 full image by default.
 }
 \examples{
 \dontrun{
 montage |>
-  adjust_crop(width = 40) |>
+  add_crop(width = 40) |>
   add_zoom(width = 8, center = c(0.45, 0.6)) |>
   layout_grid(x = channel, y = view)
 }

@@ -372,9 +372,28 @@ montage
 
 <img src="man/figures/README-montage-row.png" alt="" width="340" />
 
+### Black channels: dark signal on white
+
+A channel coloured black is shown inverted: dark signal on a white
+background, with a thin frame. Merges always stay on black: there, black
+channels use their original colour from the metadata, and `colors` in
+`add_merge()` colours members differently in the merge only. Here both
+proteins are black on their own, and the merge shows Cy3 in its original
+magenta and Alexa Fluor 488 in yellow:
+
+``` r
+cells |>
+  tidymontage(x = mutant, channel = c("Cy3", "Alexa Fluor 488", "merge")) |>
+  adjust_colors(Cy3 = "black", `Alexa Fluor 488` = "black") |>
+  add_merge(Cy3, `Alexa Fluor 488`, colors = c(`Alexa Fluor 488` = "yellow")) |>
+  add_color_legend()
+```
+
+<img src="man/figures/README-ink.png" alt="" width="243" />
+
 ### Crops and zooms
 
-`adjust_crop()` shows a region of each image. The size is given once, in
+`add_crop()` shows a region of each image. The size is given once, in
 micrometres, so all panels share one magnification; only the position
 can differ between images. Positions are the region’s center, relative
 to the full image (0-1), here one per mutant.
@@ -391,14 +410,14 @@ crops <- tribble(
 )
 zooms <- tribble(
   ~mutant, ~x,   ~y,
-  "I56A",  0.50, 0.33,
+  "I56A",  0.50, 0.40,
   "L59A",  0.40, 0.48
 )
 
 cells |>
   tidymontage(x = mutant) |>
   add_merge(Cy3, `Alexa Fluor 488`, DAPI) |>
-  adjust_crop(width = 60, center = crops) |>
+  add_crop(width = 60, center = crops) |>
   add_zoom(width = 15, center = zooms, box = "merge")
 ```
 
@@ -428,7 +447,7 @@ changes:
 cells |>
   tidymontage(x = mutant, layout = "hero") |>
   add_merge(Cy3, `Alexa Fluor 488`, DAPI) |>
-  adjust_crop(width = 60, center = crops) |>
+  add_crop(width = 60, center = crops) |>
   add_zoom(width = 15, center = zooms) |>
   add_scale_bar() |> 
   adjust_size(140)
@@ -444,42 +463,84 @@ or side panels:
 cells |>
   tidymontage(x = mutant, layout = layout_hero(position = "bottom", labels = FALSE)) |>
   add_merge(Cy3, `Alexa Fluor 488`, DAPI) |>
-  adjust_crop(width = 60, center = crops) |>
+  add_crop(width = 60, center = crops) |>
   add_zoom(width = 15, center = zooms) |> 
   adjust_size(140) |> 
   add_scale_bar() |> 
   adjust_colors(DAPI = "#F1CD36") |> 
   add_color_legend(position = "bottom")
+```
 
+<img src="man/figures/README-hero-bottom.png" alt="" width="519" />
 
+``` r
 cells |>
   tidymontage(x = mutant, layout = layout_hero(position = "bottom", side = panel(channel = c("Cy3", "Alexa Fluor 488", "merge"), view = c("zoom")))) |>
   add_merge(Cy3, `Alexa Fluor 488`, DAPI) |>
-  adjust_crop(width = 60, center = crops) |>
+  add_crop(width = 60, center = crops) |>
   add_zoom(width = 15, center = zooms) |> 
   adjust_size(140) |> 
   add_scale_bar() |> 
   adjust_colors(DAPI = "#F1CD36")
 ```
 
-<img src="man/figures/README-hero-bottom.png" alt="" width="519" />
+<img src="man/figures/README-unnamed-chunk-2.png" alt="" width="519" />
+
+``` r
+cells |>
+  tidymontage(x = mutant, layout = layout_hero(position = "bottom", side = panel(channel = c("Cy3", "Alexa Fluor 488", "merge"), view = c("zoom")))) |>
+  add_merge(Cy3, `Alexa Fluor 488`, DAPI, colors = c(DAPI = "#F1CD36")) |>
+  add_crop(width = 60, center = crops) |>
+  add_zoom(width = 15, center = zooms) |> 
+  adjust_size(140) |> 
+  add_scale_bar() |> 
+  adjust_colors(DAPI = "#000000", Cy3 = "#000000", `Alexa Fluor 488` = "#000000")
+```
+
+<img src="man/figures/README-unnamed-chunk-3.png" alt="" width="519" />
+
+``` r
+cells |>
+  tidymontage(x = mutant, layout = layout_hero(position = "bottom")) |>
+  add_merge(Cy3, `Alexa Fluor 488`, DAPI, colors = c(DAPI = "#F1CD36")) |>
+  add_crop(width = 60, center = crops) |>
+  add_zoom(width = 15, center = zooms) |> 
+  adjust_size(140) |> 
+  add_scale_bar() |> 
+  adjust_colors(DAPI = "#000000", Cy3 = "#000000", `Alexa Fluor 488` = "#000000")
+```
+
+<img src="man/figures/README-unnamed-chunk-4.png" alt="" width="519" />
+
+``` r
+cells |>
+  tidymontage(x = mutant) |>
+  add_merge(Cy3, `Alexa Fluor 488`, DAPI, colors = c(DAPI = "#F1CD36")) |>
+  add_crop(width = 60, center = crops) |>
+  add_zoom(width = 15, center = zooms) |> 
+  adjust_size(140) |> 
+  add_scale_bar() |> 
+  adjust_colors(DAPI = "#000000", Cy3 = "#000000", `Alexa Fluor 488` = "#000000")
+```
+
+<img src="man/figures/README-unnamed-chunk-5.png" alt="" width="358" />
 
 ### Colour legend
 
 `add_color_legend()` explains the colours, like a ggplot2 legend: a
 swatch and the name of each channel shown, including the members of
 merges. In a hero layout, it can replace the labels of the small panels.
-It goes on top, at the bottom or on the right, outside the panels, so
-the montage grows and the panels keep their size:
+It goes at the bottom (the default), on top or on the right, outside the
+panels, so the montage grows and the panels keep their size:
 
 ``` r
 cells |>
   tidymontage(x = mutant, layout = layout_hero(position = "bottom", labels = FALSE)) |>
   add_merge(Cy3, `Alexa Fluor 488`, DAPI) |>
-  adjust_crop(width = 60, center = crops) |>
+  add_crop(width = 60, center = crops) |>
   add_zoom(width = 15, center = zooms) |>
   add_scale_bar() |>
-  add_color_legend("bottom")
+  add_color_legend()
 ```
 
 <img src="man/figures/README-legend.png" alt="" width="340" />
@@ -499,7 +560,7 @@ restyles them:
 cells |>
   tidymontage(x = mutant) |>
   add_merge(Cy3, `Alexa Fluor 488`, DAPI) |>
-  adjust_crop(width = 60, center = crops) |>
+  add_crop(width = 60, center = crops) |>
   add_zoom(width = 15, center = zooms, box = "merge") |>
   add_scale_bar()
 ```
@@ -520,14 +581,14 @@ cat(format(montage), sep = "\n")
 #>   2. adjust_exposure(min = "p0.1", max = "p99.8", .by = channel)
 #>   3. add_merge(`Alexa Fluor 647`, `Alexa Fluor 555`, `Alexa Fluor 488`, `Hoechst 33258`, name = "merge")
 montage_panels(montage)
-#> # A tibble: 5 x 13
-#>     col   row channel         view   xmin  ymin  xmax  ymax merge px_xmin px_xmax px_ymin px_ymax
-#>   <int> <int> <chr>           <chr> <dbl> <dbl> <dbl> <dbl> <lgl>   <dbl>   <dbl>   <dbl>   <dbl>
-#> 1     1     1 Alexa Fluor 647 full    0    4.69  17.2  21.9 FALSE       1    2024       1    2024
-#> 2     2     1 Alexa Fluor 555 full   18.2  4.69  35.4  21.9 FALSE       1    2024       1    2024
-#> 3     3     1 Alexa Fluor 488 full   36.4  4.69  53.6  21.9 FALSE       1    2024       1    2024
-#> 4     4     1 Hoechst 33258   full   54.6  4.69  71.8  21.9 FALSE       1    2024       1    2024
-#> 5     5     1 merge           full   72.8  4.69  90    21.9 TRUE        1    2024       1    2024
+#> # A tibble: 5 x 14
+#>     col   row channel view   xmin  ymin  xmax  ymax merge background px_xmin px_xmax px_ymin px_ymax
+#>   <int> <int> <chr>   <chr> <dbl> <dbl> <dbl> <dbl> <lgl> <chr>        <dbl>   <dbl>   <dbl>   <dbl>
+#> 1     1     1 Alexa ~ full    0    4.69  17.2  21.9 FALSE black            1    2024       1    2024
+#> 2     2     1 Alexa ~ full   18.2  4.69  35.4  21.9 FALSE black            1    2024       1    2024
+#> 3     3     1 Alexa ~ full   36.4  4.69  53.6  21.9 FALSE black            1    2024       1    2024
+#> 4     4     1 Hoechs~ full   54.6  4.69  71.8  21.9 FALSE black            1    2024       1    2024
+#> 5     5     1 merge   full   72.8  4.69  90    21.9 TRUE  black            1    2024       1    2024
 ```
 
 Like plots in tidyplots, montages have a **fixed physical size**: by
@@ -561,11 +622,12 @@ cells |> tidymontage(x = channel) |> montage_panels()
 cells |>
   tidymontage(x = mutant, channel = "DAPI") |>
   montage_panels()
-#> # A tibble: 2 x 14
-#>     col   row channel view  mutant  xmin  ymin  xmax  ymax merge px_xmin px_xmax px_ymin px_ymax
-#>   <int> <int> <chr>   <chr> <chr>  <dbl> <dbl> <dbl> <dbl> <lgl>   <dbl>   <dbl>   <dbl>   <dbl>
-#> 1     1     1 DAPI    full  I56A     0    4.69  44.5  49.2 FALSE       1    1796       1    1796
-#> 2     2     1 DAPI    full  L59A    45.5  4.69  90    49.2 FALSE       1    1796       1    1796
+#> # A tibble: 2 x 15
+#>     col   row channel view  mutant  xmin  ymin  xmax  ymax merge background px_xmin px_xmax px_ymin
+#>   <int> <int> <chr>   <chr> <chr>  <dbl> <dbl> <dbl> <dbl> <lgl> <chr>        <dbl>   <dbl>   <dbl>
+#> 1     1     1 DAPI    full  I56A     0    4.69  44.5  49.2 FALSE black            1    1796       1
+#> 2     2     1 DAPI    full  L59A    45.5  4.69  90    49.2 FALSE black            1    1796       1
+#> # i 1 more variable: px_ymax <dbl>
 
 # unlinking display ranges across channels is possible, but flagged
 invisible(autoplot(tidymontage(cells, x = mutant) |> adjust_exposure(.by = mutant)))

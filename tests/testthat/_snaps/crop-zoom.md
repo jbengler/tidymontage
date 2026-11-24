@@ -1,34 +1,34 @@
-# adjust_crop() and add_zoom() validate their arguments
+# add_crop() and add_zoom() validate their arguments
 
     Code
-      adjust_crop(m, width = -1)
+      add_crop(m, width = -1)
     Condition
-      Error in `adjust_crop()`:
+      Error in `add_crop()`:
       ! `width` must be a single positive number.
     Code
-      adjust_crop(m, width = 1, center = c(0.5, 2))
+      add_crop(m, width = 1, center = c(0.5, 2))
     Condition
-      Error in `adjust_crop()`:
+      Error in `add_crop()`:
       ! Relative `center` values must be between 0 and 1.
     Code
-      adjust_crop(m, width = 1, center = 0.5)
+      add_crop(m, width = 1, center = 0.5)
     Condition
-      Error in `adjust_crop()`:
+      Error in `add_crop()`:
       ! `center` must be `c(x, y)` or a data frame.
     Code
-      adjust_crop(m, width = 1, center = data.frame(x = 0.5))
+      add_crop(m, width = 1, center = data.frame(x = 0.5))
     Condition
-      Error in `adjust_crop()`:
+      Error in `add_crop()`:
       ! A `center` data frame needs numeric columns x and y.
     Code
-      adjust_crop(m, width = 1, center = data.frame(genotype = "a", x = 0.5, y = 0.5))
+      add_crop(m, width = 1, center = data.frame(genotype = "a", x = 0.5, y = 0.5))
     Condition
-      Error in `adjust_crop()`:
+      Error in `add_crop()`:
       ! `center` has column genotype that is not in the images tibble.
     Code
-      adjust_crop(m, width = 1, units = "mm")
+      add_crop(m, width = 1, units = "mm")
     Condition
-      Error in `adjust_crop()`:
+      Error in `add_crop()`:
       ! `units` must be one of "um" or "px", not "mm".
       i Did you mean "um"?
     Code

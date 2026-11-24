@@ -38,7 +38,7 @@ test_that("the grid places channel and view on a free axis", {
 
 test_that("views go to the other axis, nested inside the mapped columns", {
   m <- tidymontage(local_montage_images(), x = condition) |>
-    adjust_crop(width = 0.6) |>
+    add_crop(width = 0.6) |>
     add_zoom(width = 0.3)
   p <- montage_panels(m)
   # channels on rows, views inside conditions on columns
@@ -53,7 +53,7 @@ test_that("mapping channel or view yourself overrides the layout", {
   expect_equal(p$col, c(1, 2, 1, 2))
 
   m <- tidymontage(local_montage_images(), x = c(view, condition), y = channel) |>
-    adjust_crop(width = 0.6) |>
+    add_crop(width = 0.6) |>
     add_zoom(width = 0.3)
   p <- montage_panels(m)
   expect_equal(p$view[p$row == 1], c("crop", "crop", "zoom", "zoom"))

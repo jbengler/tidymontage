@@ -11,7 +11,7 @@ test_that("crops have one size and positions per image", {
   m <- tidymontage(images) |> adjust_layout(x = condition, y = channel)
 
   # 0.4 um = 4 px, centered on the image center (5, 4)
-  r <- regions(adjust_crop(m, width = 0.4))
+  r <- regions(add_crop(m, width = 0.4))
   expect_equal(unique(r$view), "crop")
   expect_equal(unique(r$px_xmin), 4)
   expect_equal(unique(r$px_xmax), 7)
@@ -19,7 +19,7 @@ test_that("crops have one size and positions per image", {
   expect_equal(unique(r$px_ymax), 6)
 
   # pixel sizes and pixel centers (0-based, as in Fiji)
-  r <- regions(adjust_crop(m, width = 4, height = 2, units = "px", center = c(2, 2), center_units = "px"))
+  r <- regions(add_crop(m, width = 4, height = 2, units = "px", center = c(2, 2), center_units = "px"))
   expect_equal(unique(r$px_xmin), 1)
   expect_equal(unique(r$px_xmax), 4)
   expect_equal(unique(r$px_ymin), 2)
@@ -27,7 +27,7 @@ test_that("crops have one size and positions per image", {
 
   # one center per condition
   centers <- tibble::tibble(condition = c("ctrl", "ko"), x = c(0.3, 0.7), y = 0.5)
-  r <- regions(adjust_crop(m, width = 0.4, center = centers))
+  r <- regions(add_crop(m, width = 0.4, center = centers))
   expect_equal(r$px_xmin[r$condition == "ctrl"], c(2, 2))
   expect_equal(r$px_xmin[r$condition == "ko"], c(6, 6))
 })
@@ -36,7 +36,7 @@ test_that("crops show the right pixels and keep the full-image display range", {
   images <- local_montage_images()
   m <- tidymontage(images) |>
     adjust_colors(C1 = "#FF0000") |>
-    adjust_crop(width = 0.4) |> adjust_layout(x = condition, y = channel)
+    add_crop(width = 0.4) |> adjust_layout(x = condition, y = channel)
   b <- montage_build(m, dpi = 72)
   expect_equal(dim(b$rasters[[1]]), c(4, 4))
   # range from the full images: C1 values 0..79 (ctrl) and 100..179 (ko)
@@ -52,7 +52,7 @@ test_that("crops show the right pixels and keep the full-image display range", {
 
 test_that("regions beyond the image are moved inside with a warning", {
   m <- tidymontage(local_montage_images()) |>
-    adjust_crop(width = 0.4, center = c(0, 1)) |> adjust_layout(x = condition, y = channel)
+    add_crop(width = 0.4, center = c(0, 1)) |> adjust_layout(x = condition, y = channel)
   expect_warning(r <- regions(m), "moved inside")
   expect_equal(unique(r$px_xmin), 1)
   expect_equal(unique(r$px_ymax), 8)
@@ -60,28 +60,28 @@ test_that("regions beyond the image are moved inside with a warning", {
 
 test_that("crop problems are explained", {
   m <- tidymontage(local_montage_images()) |> adjust_layout(x = condition, y = channel)
-  expect_error(regions(adjust_crop(m, width = 2)), "larger than the image")
+  expect_error(regions(add_crop(m, width = 2)), "larger than the image")
   centers <- tibble::tibble(condition = "ctrl", x = 0.5, y = 0.5)
-  expect_error(regions(adjust_crop(m, width = 0.4, center = centers)), "No center .* condition = ko")
+  expect_error(regions(add_crop(m, width = 0.4, center = centers)), "No center .* condition = ko")
   centers <- tibble::tibble(condition = c("ctrl", "ctrl", "ko"), x = 0.5, y = 0.5)
-  expect_error(regions(adjust_crop(m, width = 0.4, center = centers)), "More than one center")
+  expect_error(regions(add_crop(m, width = 0.4, center = centers)), "More than one center")
 
   images <- example_images() # fake images without pixel size
   expect_error(
-    montage_panels(adjust_layout(adjust_crop(tidymontage(images), width = 1), x = condition, y = channel)),
+    montage_panels(adjust_layout(add_crop(tidymontage(images), width = 1), x = condition, y = channel)),
     "no known pixel size"
   )
 })
 
-test_that("adjust_crop() and add_zoom() validate their arguments", {
+test_that("add_crop() and add_zoom() validate their arguments", {
   m <- tidymontage(example_images())
   expect_snapshot(error = TRUE, {
-    adjust_crop(m, width = -1)
-    adjust_crop(m, width = 1, center = c(0.5, 2))
-    adjust_crop(m, width = 1, center = 0.5)
-    adjust_crop(m, width = 1, center = data.frame(x = 0.5))
-    adjust_crop(m, width = 1, center = data.frame(genotype = "a", x = 0.5, y = 0.5))
-    adjust_crop(m, width = 1, units = "mm")
+    add_crop(m, width = -1)
+    add_crop(m, width = 1, center = c(0.5, 2))
+    add_crop(m, width = 1, center = 0.5)
+    add_crop(m, width = 1, center = data.frame(x = 0.5))
+    add_crop(m, width = 1, center = data.frame(genotype = "a", x = 0.5, y = 0.5))
+    add_crop(m, width = 1, units = "mm")
     add_zoom(m, width = 1, name = "full")
     add_zoom(add_zoom(m, width = 1), width = 2)
     add_zoom(m, width = 1, box = "some")
@@ -90,14 +90,14 @@ test_that("adjust_crop() and add_zoom() validate their arguments", {
 
 test_that("a second crop replaces the first", {
   m <- tidymontage(local_montage_images()) |>
-    adjust_crop(width = 0.4) |>
-    adjust_crop(width = 0.6) |> adjust_layout(x = condition, y = channel)
+    add_crop(width = 0.4) |>
+    add_crop(width = 0.6) |> adjust_layout(x = condition, y = channel)
   expect_equal(unique(regions(m)$px_xmax - regions(m)$px_xmin), 5)
 })
 
 test_that("zooms are views that are placed automatically, mapped or chosen", {
   m <- tidymontage(local_montage_images()) |>
-    adjust_crop(width = 0.6) |>
+    add_crop(width = 0.6) |>
     add_zoom(width = 0.2, center = c(0.5, 0.5))
   p <- montage_panels(adjust_layout(m, x = condition, y = channel))
   expect_equal(p$view[p$row == 1], c("crop", "zoom", "crop", "zoom"))
@@ -145,14 +145,14 @@ test_that("zoom boxes mark the region on the main panels", {
 
 test_that("zooms outside the crop get no box, with a warning", {
   m <- tidymontage(local_montage_images()) |>
-    adjust_crop(width = 0.4, center = c(0.3, 0.5)) |>
+    add_crop(width = 0.4, center = c(0.3, 0.5)) |>
     add_zoom(width = 0.2, center = c(0.9, 0.5)) |> adjust_layout(x = c(view, condition), y = channel)
   expect_warning(montage_panels(m), "lies outside")
 })
 
 test_that("crops and zooms must share the panel shape", {
   m <- tidymontage(local_montage_images()) |>
-    adjust_crop(width = 0.6, height = 0.4) |>
+    add_crop(width = 0.6, height = 0.4) |>
     add_zoom(width = 0.2) |> adjust_layout(x = c(view, condition), y = channel)
   expect_error(montage_panels(m), "same aspect ratio")
 })
@@ -160,9 +160,9 @@ test_that("crops and zooms must share the panel shape", {
 test_that("crop and zoom steps print as calls", {
   centers <- tibble::tibble(condition = c("ctrl", "ko"), x = 0.5, y = 0.5)
   m <- tidymontage(example_images()) |>
-    adjust_crop(width = 40, center = centers) |>
+    add_crop(width = 40, center = centers) |>
     add_zoom(width = 8, height = 6, center = c(10, 20), center_units = "px", units = "px", box = "merge")
-  expect_equal(format(m$steps[[1]]), 'adjust_crop(width = 40, center = <2 centers by condition>, name = "crop")')
+  expect_equal(format(m$steps[[1]]), 'add_crop(width = 40, center = <2 centers by condition>, name = "crop")')
   expect_equal(
     format(m$steps[[2]]),
     'add_zoom(width = 8, height = 6, center = c(10, 20), units = "px", center_units = "px", name = "zoom", box = "merge")'
@@ -175,7 +175,7 @@ test_that("crops and zooms render consistently", {
   m <- tidymontage(local_montage_images()) |>
     adjust_exposure(min = 0, max = "p100") |>
     add_merge(C1, C2) |>
-    adjust_crop(width = 0.6, center = c(0.4, 0.5)) |>
+    add_crop(width = 0.6, center = c(0.4, 0.5)) |>
     add_zoom(width = 0.2, center = c(0.45, 0.5)) |> adjust_layout(x = c(view, condition), y = channel)
   vdiffr::expect_doppelganger("crop and zoom", autoplot(m, dpi = 72))
 })

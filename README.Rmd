@@ -283,9 +283,26 @@ montage <- projected |>
 montage
 ```
 
+### Black channels: dark signal on white
+
+A channel coloured black is shown inverted: dark signal on a white
+background, with a thin frame. Merges always stay on black: there, black
+channels use their original colour from the metadata, and `colors` in
+`add_merge()` colours members differently in the merge only. Here both
+proteins are black on their own, and the merge shows Cy3 in its original
+magenta and Alexa Fluor 488 in yellow:
+
+```{r ink}
+cells |>
+  tidymontage(x = mutant, channel = c("Cy3", "Alexa Fluor 488", "merge")) |>
+  adjust_colors(Cy3 = "black", `Alexa Fluor 488` = "black") |>
+  add_merge(Cy3, `Alexa Fluor 488`, colors = c(`Alexa Fluor 488` = "yellow")) |>
+  add_color_legend()
+```
+
 ### Crops and zooms
 
-`adjust_crop()` shows a region of each image. The size is given once, in
+`add_crop()` shows a region of each image. The size is given once, in
 micrometres, so all panels share one magnification; only the position can
 differ between images. Positions are the region's center, relative to the full
 image (0-1), here one per mutant.
@@ -302,14 +319,14 @@ crops <- tribble(
 )
 zooms <- tribble(
   ~mutant, ~x,   ~y,
-  "I56A",  0.50, 0.33,
+  "I56A",  0.50, 0.40,
   "L59A",  0.40, 0.48
 )
 
 cells |>
   tidymontage(x = mutant) |>
   add_merge(Cy3, `Alexa Fluor 488`, DAPI) |>
-  adjust_crop(width = 60, center = crops) |>
+  add_crop(width = 60, center = crops) |>
   add_zoom(width = 15, center = zooms, box = "merge")
 ```
 
@@ -334,7 +351,7 @@ channels of the zoom, labelled outside the images. Nothing else changes:
 cells |>
   tidymontage(x = mutant, layout = "hero") |>
   add_merge(Cy3, `Alexa Fluor 488`, DAPI) |>
-  adjust_crop(width = 60, center = crops) |>
+  add_crop(width = 60, center = crops) |>
   add_zoom(width = 15, center = zooms) |>
   add_scale_bar() |> 
   adjust_size(140)
@@ -348,22 +365,57 @@ side panels:
 cells |>
   tidymontage(x = mutant, layout = layout_hero(position = "bottom", labels = FALSE)) |>
   add_merge(Cy3, `Alexa Fluor 488`, DAPI) |>
-  adjust_crop(width = 60, center = crops) |>
+  add_crop(width = 60, center = crops) |>
   add_zoom(width = 15, center = zooms) |> 
   adjust_size(140) |> 
   add_scale_bar() |> 
   adjust_colors(DAPI = "#F1CD36") |> 
   add_color_legend(position = "bottom")
+```
 
-
+```{r}
 cells |>
   tidymontage(x = mutant, layout = layout_hero(position = "bottom", side = panel(channel = c("Cy3", "Alexa Fluor 488", "merge"), view = c("zoom")))) |>
   add_merge(Cy3, `Alexa Fluor 488`, DAPI) |>
-  adjust_crop(width = 60, center = crops) |>
+  add_crop(width = 60, center = crops) |>
   add_zoom(width = 15, center = zooms) |> 
   adjust_size(140) |> 
   add_scale_bar() |> 
   adjust_colors(DAPI = "#F1CD36")
+```
+
+```{r}
+cells |>
+  tidymontage(x = mutant, layout = layout_hero(position = "bottom", side = panel(channel = c("Cy3", "Alexa Fluor 488", "merge"), view = c("zoom")))) |>
+  add_merge(Cy3, `Alexa Fluor 488`, DAPI, colors = c(DAPI = "#F1CD36")) |>
+  add_crop(width = 60, center = crops) |>
+  add_zoom(width = 15, center = zooms) |> 
+  adjust_size(140) |> 
+  add_scale_bar() |> 
+  adjust_colors(DAPI = "#000000", Cy3 = "#000000", `Alexa Fluor 488` = "#000000")
+```
+
+```{r}
+cells |>
+  tidymontage(x = mutant, layout = layout_hero(position = "bottom")) |>
+  add_merge(Cy3, `Alexa Fluor 488`, DAPI, colors = c(DAPI = "#F1CD36")) |>
+  add_crop(width = 60, center = crops) |>
+  add_zoom(width = 15, center = zooms) |> 
+  adjust_size(140) |> 
+  add_scale_bar() |> 
+  adjust_colors(DAPI = "#000000", Cy3 = "#000000", `Alexa Fluor 488` = "#000000")
+```
+
+```{r}
+cells |>
+  tidymontage(x = mutant) |>
+  add_merge(Cy3, `Alexa Fluor 488`, DAPI, colors = c(DAPI = "#F1CD36")) |>
+  add_crop(width = 60, center = crops) |>
+  add_zoom(width = 15, center = zooms) |> 
+  adjust_size(140) |> 
+  add_scale_bar() |> 
+  adjust_colors(DAPI = "#000000", Cy3 = "#000000", `Alexa Fluor 488` = "#000000")
+
 ```
 
 ### Colour legend
@@ -371,17 +423,17 @@ cells |>
 `add_color_legend()` explains the colours, like a ggplot2 legend: a swatch
 and the name of each channel shown, including the members of merges. In a
 hero layout, it can replace the labels of the small panels.
-It goes on top, at the bottom or on the right, outside the panels, so the
+It goes at the bottom (the default), on top or on the right, outside the panels, so the
 montage grows and the panels keep their size:
 
 ```{r legend}
 cells |>
   tidymontage(x = mutant, layout = layout_hero(position = "bottom", labels = FALSE)) |>
   add_merge(Cy3, `Alexa Fluor 488`, DAPI) |>
-  adjust_crop(width = 60, center = crops) |>
+  add_crop(width = 60, center = crops) |>
   add_zoom(width = 15, center = zooms) |>
   add_scale_bar() |>
-  add_color_legend("bottom")
+  add_color_legend()
 ```
 
 ### Scale bars and headers
@@ -398,7 +450,7 @@ an axis, the headers are nested; `adjust_headers()` hides or restyles them:
 cells |>
   tidymontage(x = mutant) |>
   add_merge(Cy3, `Alexa Fluor 488`, DAPI) |>
-  adjust_crop(width = 60, center = crops) |>
+  add_crop(width = 60, center = crops) |>
   add_zoom(width = 15, center = zooms, box = "merge") |>
   add_scale_bar()
 ```

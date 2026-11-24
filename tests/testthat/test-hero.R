@@ -1,7 +1,7 @@
 hero_montage <- function(images, ...) {
   tidymontage(images, x = condition, layout = layout_hero(...)) |>
     add_merge(C1, C2) |>
-    adjust_crop(width = 0.6) |>
+    add_crop(width = 0.6) |>
     add_zoom(width = 0.3)
 }
 
@@ -113,7 +113,7 @@ test_that("side panels that differ by view are labelled with the view", {
     side = panel(channel = "merge", view = c("crop", "zoom"))
   )) |>
     add_merge(C1, C2) |>
-    adjust_crop(width = 0.6) |>
+    add_crop(width = 0.6) |>
     add_zoom(width = 0.3)
   expect_equal(hero_space(m)$side_labels$label, rep(c("crop", "zoom"), 2))
 })

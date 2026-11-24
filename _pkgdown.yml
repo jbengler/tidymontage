@@ -1,4 +1,39 @@
-url: ~
+url: https://jbengler.github.io/tidymontage/
 template:
   bootstrap: 5
 
+authors:
+  Jan Broder Engler:
+    href: https://github.com/jbengler
+
+figures:
+  dpi: 200
+
+reference:
+- title: Read images
+- contents:
+  - starts_with("read_")
+  - img-projection
+- title: Create
+- contents:
+  - starts_with("tidymontage")
+- title: Add
+  desc: >
+    Add stuff.
+- contents:
+  - starts_with("add")
+- title: Adjust
+  desc: >
+    Adjust stuff.
+- contents:
+  - starts_with("adjust_")
+- title: Save
+- contents:
+  - starts_with("save_")
+- title: Helpers
+- contents:
+  - panel
+  - starts_with("layout_")
+  - starts_with("montage_")
+  - starts_with("is_")
+  - starts_with("autoplot")

@@ -28,7 +28,7 @@ test_that("one scale bar per view, in the bottom-right panel", {
 
 test_that("scale bar lengths can be set per view", {
   m <- tidymontage(local_montage_images()) |>
-    adjust_crop(width = 0.6) |>
+    add_crop(width = 0.6) |>
     add_zoom(width = 0.3) |> adjust_layout(x = c(view, condition), y = channel)
   s <- build_space(add_scale_bar(m, c(crop = 0.2, zoom = 0.1)))
   expect_equal(nrow(s$scale_bars), 2)
@@ -75,7 +75,7 @@ test_that("scale bars need a pixel size and follow different magnifications", {
 
 test_that("headers nest when several dimensions share an axis", {
   m <- tidymontage(local_montage_images()) |>
-    adjust_crop(width = 0.6) |>
+    add_crop(width = 0.6) |>
     add_zoom(width = 0.3) |> adjust_layout(x = c(view, condition), y = channel)
   s <- build_space(m)
   top <- s$labels[s$labels$angle == 0, ]
@@ -142,7 +142,7 @@ test_that("annotated montages render consistently", {
   m <- tidymontage(local_montage_images()) |>
     adjust_exposure(min = 0, max = "p100") |>
     add_merge(C1, C2) |>
-    adjust_crop(width = 0.6) |>
+    add_crop(width = 0.6) |>
     add_zoom(width = 0.3) |> adjust_layout(x = c(view, condition), y = channel) |>
     add_scale_bar()
   vdiffr::expect_doppelganger("annotated montage", autoplot(m, dpi = 72))

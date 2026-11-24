@@ -6,7 +6,7 @@
 \usage{
 add_color_legend(
   montage,
-  position = c("top", "bottom", "right"),
+  position = c("bottom", "top", "right"),
   size = 7,
   color = "black"
 )
@@ -14,7 +14,8 @@ add_color_legend(
 \arguments{
 \item{montage}{A \code{\link[=tidymontage]{tidymontage()}} object.}
 
-\item{position}{Where the legend goes: \code{"top"}, \code{"bottom"} or \code{"right"}.}
+\item{position}{Where the legend goes: \code{"bottom"} (the default), \code{"top"} or
+\code{"right"}.}
 
 \item{size}{Text size in points.}
 
@@ -27,8 +28,10 @@ The montage with the legend step added.
 Adds a legend that names the channels and their colours, like a ggplot2
 legend: a coloured swatch next to each channel name, outside the panels.
 It lists the channels shown in the montage, including the members of
-merges; merges themselves are not listed. The montage grows by the space
-the legend needs, so the panels keep their size.
+merges; merges themselves are not listed. Black channels (shown inverted)
+are left out, since their swatches would all look the same; their colours
+in merges are listed instead. The montage grows by the space the legend
+needs, so the panels keep their size.
 }
 \examples{
 \dontrun{

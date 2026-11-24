@@ -47,7 +47,7 @@ The montage with the scale bar step added.
 }
 \description{
 Adds a scale bar to the panels of a montage. Panels of one view share the
-same magnification (see \code{\link[=adjust_crop]{adjust_crop()}}), so by default one bar per view is
+same magnification (see \code{\link[=add_crop]{add_crop()}}), so by default one bar per view is
 drawn, in the bottom-right panel of that view.
 }
 \details{

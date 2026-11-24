@@ -4,9 +4,13 @@
 #' be placed in the layout like any other channel, e.g. a row
 #' `GFP | Cy3 | merge` with `layout_grid(x = channel)`.
 #'
-#' A merge blends the coloured channels additively: each member channel is
-#' shown with its own colour and display range, then the colours are added up.
-#' Member channels don't need their own panels.
+#' Merges are always drawn on a black background: each member channel is
+#' shown with its own colour and display range, and the colours are added up
+#' like light. Member channels don't need their own panels.
+#'
+#' A channel coloured black (`"#000000"`) is shown inverted in its own panels,
+#' as dark signal on white. In a merge, it uses its original colour from the
+#' image metadata (the `color` column) instead, unless `colors` sets one.
 #'
 #' A merge combines the images that would share a panel apart from their
 #' channel, typically the channels of one file. Every panel of the merge needs
@@ -17,16 +21,24 @@
 #'   strings for names with spaces, e.g. `` `Alexa Fluor 488` ``.
 #' @param name Name of the merged channel, as it appears in the layout and in
 #'   labels.
+#' @param colors Colours of member channels in this merge only, as a named
+#'   vector, e.g. `c(GFP = "red")`. Members not named keep their channel colour
+#'   (or, if that is black, their original colour).
 #'
 #' @returns The montage with the merge step added.
 #' @examples
 #' \dontrun{
 #' montage |>
-#'   add_merge(GFP, Cy3, name = "merge") |>
-#'   layout_grid(x = channel, y = condition)
+#'   add_merge(GFP, Cy3, name = "merge")
+#'
+#' # both channels inverted on their own; in the merge, Cy3 in its original
+#' # colour and GFP in green
+#' montage |>
+#'   adjust_colors(Cy3 = "black", GFP = "black") |>
+#'   add_merge(Cy3, GFP, colors = c(GFP = "green"))
 #' }
 #' @export
-add_merge <- function(montage, ..., name = "merge") {
+add_merge <- function(montage, ..., name = "merge", colors = NULL) {
   check_tidymontage(montage)
   call <- rlang::current_env()
   quos <- rlang::enquos(...)
@@ -55,7 +67,27 @@ add_merge <- function(montage, ..., name = "merge") {
   if (name %in% c(available, existing)) {
     cli::cli_abort("{.arg name} {.val {name}} is already used by a channel or another merge.")
   }
-  add_step(montage, new_step("add_merge", list(channels = channels, name = name)))
+  if (!is.null(colors)) {
+    colors <- as.list(colors)
+    if (!rlang::is_named(colors)) {
+      cli::cli_abort("{.arg colors} must be named by channel, e.g. {.code c(GFP = \"red\")}.")
+    }
+    not_members <- setdiff(names(colors), channels)
+    if (length(not_members) > 0) {
+      cli::cli_abort("{.arg colors} names {.val {not_members}}, which {?is/are} not in the merge.")
+    }
+    for (nm in names(colors)) {
+      col <- colors[[nm]]
+      ok <- rlang::is_string(col) && !inherits(try(grDevices::col2rgb(col), silent = TRUE), "try-error")
+      if (!ok) {
+        cli::cli_abort("The colour for {.val {nm}} in {.arg colors} must be a single valid colour.")
+      }
+    }
+    colors <- lapply(colors, as.character)
+  }
+  add_step(montage, new_step("add_merge", list(
+    channels = channels, name = name, colors = colors
+  )))
 }
 
 #' @export
@@ -63,5 +95,13 @@ format.tidymontage_step_add_merge <- function(x, ...) {
   ch <- vapply(x$params$channels, function(c) {
     if (make.names(c) == c) c else paste0("`", c, "`")
   }, character(1))
-  paste0("add_merge(", paste(ch, collapse = ", "), ", name = \"", x$params$name, "\")")
+  p <- x$params
+  args <- c(ch, paste0("name = \"", p$name, "\""))
+  if (length(p$colors) > 0) {
+    cols <- vapply(names(p$colors), function(nm) {
+      paste0(if (make.names(nm) == nm) nm else paste0("`", nm, "`"), " = \"", p$colors[[nm]], "\"")
+    }, character(1))
+    args <- c(args, paste0("colors = c(", paste(cols, collapse = ", "), ")"))
+  }
+  paste0("add_merge(", paste(args, collapse = ", "), ")")
 }

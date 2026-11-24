@@ -17,7 +17,7 @@ montage_spec <- function(montage) {
   spec <- list(
     mapping = list(x = setup$x, y = setup$y, levels = setup$levels),
     layout = setup$layout, gap = setup$gap, size = setup$size,
-    colors = list(), exposure = default_exposure(), merges = list(),
+    colors = list(), exposure = default_exposure(), merges = list(), merge_style = list(),
     crop = NULL, zooms = list(), scale_bar = NULL, legend = NULL,
     headers = list(x = TRUE, y = TRUE, size = 7, color = "black")
   )
@@ -33,7 +33,8 @@ montage_spec <- function(montage) {
       if (!is.null(p$gap)) spec$gap <- p$gap
     } else if (step$type == "add_merge") {
       spec$merges[[p$name]] <- p$channels
-    } else if (step$type == "adjust_crop") {
+      spec$merge_style[[p$name]] <- list(colors = p$colors)
+    } else if (step$type == "add_crop") {
       spec$crop <- p
     } else if (step$type == "add_zoom") {
       spec$zooms[[p$name]] <- p
@@ -758,7 +759,10 @@ montage_boxes <- function(space, panels, images, views, call = rlang::caller_env
         outside <- c(outside, panel_where(row))
         next
       }
-      boxes[[length(boxes) + 1]] <- as.data.frame(as.list(b))
+      b <- as.data.frame(as.list(b))
+      # boxes contrast with the panel: black on white panels
+      b$color <- if (identical(panels$.background[i], "white")) "black" else "white"
+      boxes[[length(boxes) + 1]] <- b
     }
   }
   if (length(outside) > 0) {
@@ -948,6 +952,34 @@ tint_raster <- function(m, lo, hi, color) {
   pack_raster(tint_rgb(m, lo, hi, color))
 }
 
+# Intensities -> 0-1 within the display range.
+scale_intensity <- function(m, lo, hi) {
+  v <- (m - lo) / (hi - lo)
+  v[v < 0] <- 0
+  v[v > 1] <- 1
+  v
+}
+
+# Red, green and blue matrices (0-255) of one panel. On black, colours add up
+# like light; on white, they multiply like inks (a black channel shows dark
+# signal on white).
+compose_panel <- function(values, colors, background = "black") {
+  rgb <- grDevices::col2rgb(colors) / 255
+  if (background == "white") {
+    lapply(1:3, function(ch) {
+      out <- 255
+      for (j in seq_along(values)) out <- out * (1 - values[[j]] * (1 - rgb[ch, j]))
+      out
+    })
+  } else {
+    lapply(1:3, function(ch) {
+      out <- 0
+      for (j in seq_along(values)) out <- out + values[[j]] * rgb[ch, j] * 255
+      out
+    })
+  }
+}
+
 # Additive blend of several tinted images.
 blend_rgb <- function(layers) {
   Reduce(function(a, b) Map(`+`, a, b), layers)
@@ -970,24 +1002,24 @@ montage_build <- function(montage, dpi = 150, call = rlang::caller_env()) {
   ranges <- montage_ranges(sources, images, pixels, spec$exposure, call = call)
   sources$display_min <- ranges$lo
   sources$display_max <- ranges$hi
-  sources$color <- montage_colors(sources, images, spec$colors)
 
   rasters <- lapply(seq_len(nrow(panels)), function(i) {
     target_px <- (panels$xmax[i] - panels$xmin[i]) / 25.4 * dpi
-    layers <- lapply(panels$.sources[[i]], function(src) {
-      k <- match(src, used)
+    src <- panels$.sources[[i]]
+    values <- lapply(src, function(s) {
+      k <- match(s, used)
       m <- pixels[[k]][panels$.y0[i]:panels$.y1[i], panels$.x0[i]:panels$.x1[i], drop = FALSE]
       f <- max(1L, floor(ncol(m) / target_px))
-      tint_rgb(bin_mean(m, f), sources$display_min[k], sources$display_max[k], sources$color[k])
+      scale_intensity(bin_mean(m, f), sources$display_min[k], sources$display_max[k])
     })
-    pack_raster(blend_rgb(layers))
+    pack_raster(compose_panel(values, panels$.colors[[i]], panels$.background[i]))
   })
 
   single <- !panels$.is_merge
   at <- match(panels$.image, used)
   panels$display_min <- ifelse(single, sources$display_min[at], NA_real_)
   panels$display_max <- ifelse(single, sources$display_max[at], NA_real_)
-  panels$color <- ifelse(single, sources$color[at], NA_character_)
+  panels$color <- ifelse(single, vapply(panels$.colors, `[`, character(1), 1), NA_character_)
 
   list(
     panels = panels, labels = space$labels, lines = space$lines, boxes = space$boxes,
@@ -997,6 +1029,50 @@ montage_build <- function(montage, dpi = 150, call = rlang::caller_env()) {
   )
 }
 
+# Colours and background of each panel, without reading pixels. `.colors`
+# holds one colour per source image. A single channel coloured black is drawn
+# inverted on white; everything else, and every merge, on black. In merges,
+# black members use their original colour (the `color` column) unless the
+# merge sets one.
+panel_styles <- function(panels, images, spec, call = rlang::caller_env()) {
+  invisible_in <- character()
+  cols <- lapply(seq_len(nrow(panels)), function(i) {
+    src <- panels$.sources[[i]]
+    ch <- as.character(images$channel[src])
+    col <- montage_colors(tibble::tibble(.image = src, channel = ch), images, spec$colors)
+    if (panels$.is_merge[i]) {
+      original <- if ("color" %in% names(images)) images$color[src] else rep(NA_character_, length(src))
+      original[is.na(original)] <- "#FFFFFF"
+      black <- is_black(col)
+      col[black] <- original[black]
+      ov <- spec$merge_style[[panels$channel[i]]]$colors
+      hit <- ch %in% names(ov)
+      col[hit] <- unlist(ov[ch[hit]])
+      if (any(is_black(col))) invisible_in <<- c(invisible_in, panels$channel[i])
+    }
+    col
+  })
+  if (length(invisible_in) > 0) {
+    cli::cli_warn(
+      c(
+        "A channel in the merge {.val {unique(invisible_in)}} is black and invisible on the black background.",
+        "i" = "Give it a colour with {.code add_merge(colors = )}."
+      ),
+      call = call
+    )
+  }
+  background <- vapply(seq_len(nrow(panels)), function(i) {
+    if (!panels$.is_merge[i] && any(is_black(cols[[i]]))) "white" else "black"
+  }, character(1))
+  panels$.colors <- cols
+  panels$.background <- background
+  panels
+}
+
+is_black <- function(color) {
+  colSums(grDevices::col2rgb(color)) == 0
+}
+
 # Panel space, regions, geometry and boxes: everything but pixels.
 montage_layout_space <- function(montage, spec = montage_spec(montage), views = montage_views(spec),
                                  call = rlang::caller_env()) {
@@ -1004,10 +1080,18 @@ montage_layout_space <- function(montage, spec = montage_spec(montage), views = 
   space <- montage_panel_space(images, spec, views, call = call)
   space <- montage_regions(space, images, views, call = call)
   legend <- spec$legend
+  space$panels <- panel_styles(space$panels, images, spec, call = call)
   items <- if (!is.null(legend)) legend_items(space$panels, images, spec$colors)
-  extra <- legend_extent(items, legend)
-  geom <- montage_geometry(space, spec$size, spec$gap, spec$headers, extra, call = call)
-  legend_df <- if (!is.null(legend)) {
+  geom <- montage_geometry(space, spec$size, spec$gap, spec$headers, call = call)
+  if (!is.null(legend)) {
+    # the panels' width limits the rows of a legend on top or at the bottom
+    p <- geom$panels
+    extra <- legend_extent(items, legend, max(p$xmax) - min(p$xmin))
+    geom <- montage_geometry(space, spec$size, spec$gap, spec$headers, extra, call = call)
+  } else {
+    extra <- legend_extent(NULL, NULL)
+  }
+  legend_df <- if (!is.null(legend) && nrow(items) > 0) {
     p <- geom$panels
     legend_layout(items, legend, list(
       xmin = min(p$xmin), xmax = max(p$xmax), ymin = min(p$ymin), ymax = max(p$ymax),

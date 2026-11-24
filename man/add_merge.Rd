@@ -4,7 +4,7 @@
 \alias{add_merge}
 \title{Add a merge of channels}
 \usage{
-add_merge(montage, ..., name = "merge")
+add_merge(montage, ..., name = "merge", colors = NULL)
 }
 \arguments{
 \item{montage}{A \code{\link[=tidymontage]{tidymontage()}} object.}
@@ -14,6 +14,10 @@ strings for names with spaces, e.g. \code{`Alexa Fluor 488`}.}
 
 \item{name}{Name of the merged channel, as it appears in the layout and in
 labels.}
+
+\item{colors}{Colours of member channels in this merge only, as a named
+vector, e.g. \code{c(GFP = "red")}. Members not named keep their channel colour
+(or, if that is black, their original colour).}
 }
 \value{
 The montage with the merge step added.
@@ -24,9 +28,13 @@ be placed in the layout like any other channel, e.g. a row
 \code{GFP | Cy3 | merge} with \code{layout_grid(x = channel)}.
 }
 \details{
-A merge blends the coloured channels additively: each member channel is
-shown with its own colour and display range, then the colours are added up.
-Member channels don't need their own panels.
+Merges are always drawn on a black background: each member channel is
+shown with its own colour and display range, and the colours are added up
+like light. Member channels don't need their own panels.
+
+A channel coloured black (\code{"#000000"}) is shown inverted in its own panels,
+as dark signal on white. In a merge, it uses its original colour from the
+image metadata (the \code{color} column) instead, unless \code{colors} sets one.
 
 A merge combines the images that would share a panel apart from their
 channel, typically the channels of one file. Every panel of the merge needs
@@ -35,7 +43,12 @@ exactly one image of each member channel.
 \examples{
 \dontrun{
 montage |>
-  add_merge(GFP, Cy3, name = "merge") |>
-  layout_grid(x = channel, y = condition)
+  add_merge(GFP, Cy3, name = "merge")
+
+# both channels inverted on their own; in the merge, Cy3 in its original
+# colour and GFP in green
+montage |>
+  adjust_colors(Cy3 = "black", GFP = "black") |>
+  add_merge(Cy3, GFP, colors = c(GFP = "green"))
 }
 }

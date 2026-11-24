@@ -9,11 +9,19 @@ montage_ggplot <- function(build) {
       interpolate = FALSE
     )
   })
+  # white panels get a thin black frame, so they stand out from the page
+  white <- p[p$.background %in% "white", , drop = FALSE]
+  if (nrow(white) > 0) {
+    layers <- c(layers, list(ggplot2::annotate(
+      "rect", xmin = white$xmin, xmax = white$xmax, ymin = -white$ymax, ymax = -white$ymin,
+      fill = NA, colour = "black", linewidth = 0.25
+    )))
+  }
   if (!is.null(build$boxes) && nrow(build$boxes) > 0) {
     b <- build$boxes
     layers <- c(layers, list(ggplot2::annotate(
       "rect", xmin = b$xmin, xmax = b$xmax, ymin = -b$ymax, ymax = -b$ymin,
-      fill = NA, colour = "white", linewidth = 0.25
+      fill = NA, colour = b$color %||% "white", linewidth = 0.25
     )))
   }
   if (!is.null(build$scale_bars)) {
@@ -133,6 +141,7 @@ montage_panels <- function(montage) {
   space <- montage_layout_space(montage, call = rlang::current_env())
   p <- space$panels
   p$merge <- p$.is_merge
+  p$background <- p$.background
   if (".role" %in% names(p)) p$role <- p$.role
   p$px_xmin <- p$.x0
   p$px_xmax <- p$.x1

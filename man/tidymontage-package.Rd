@@ -11,6 +11,7 @@ The goal of 'tidymontage' is to streamline the creation of publication-ready mic
 Useful links:
 \itemize{
   \item \url{https://github.com/jbengler/tidymontage}
+  \item \url{https://jbengler.github.io/tidymontage/}
   \item Report bugs at \url{https://github.com/jbengler/tidymontage/issues}
 }
 
