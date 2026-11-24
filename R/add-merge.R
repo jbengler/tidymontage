@@ -9,8 +9,10 @@
 #' like light. Member channels don't need their own panels.
 #'
 #' A channel coloured black (`"#000000"`) is shown inverted in its own panels,
-#' as dark signal on white. In a merge, it uses its original colour from the
-#' image metadata (the `color` column) instead, unless `colors` sets one.
+#' as dark signal on white. A channel coloured with a colormap ([lut()]) is
+#' shown with its map. Merges need single colours: in a merge, such channels
+#' use their original colour from the image metadata (the `color` column)
+#' instead, unless `colors` sets one.
 #'
 #' A merge combines the images that would share a panel apart from their
 #' channel, typically the channels of one file. Every panel of the merge needs
@@ -53,6 +55,12 @@ add_merge <- function(montage, ..., name = "merge", colors = NULL) {
     }
     for (nm in names(colors)) {
       col <- colors[[nm]]
+      if (is_lut(col)) {
+        cli::cli_abort(c(
+          "The colour for {.val {nm}} in {.arg colors} must be a single colour, not a LUT.",
+          "i" = "Merges add up colours like light, which needs one colour per channel."
+        ))
+      }
       ok <- rlang::is_string(col) && !inherits(try(grDevices::col2rgb(col), silent = TRUE), "try-error")
       if (!ok) {
         cli::cli_abort("The colour for {.val {nm}} in {.arg colors} must be a single valid colour.")

@@ -14,7 +14,8 @@
 #' @inheritParams add_merge
 #' @param name Name of the overlay, as it appears in the layout and in labels.
 #' @param color Colour of the overlay. `"black"` shows it inverted, as dark
-#'   signal on white.
+#'   signal on white. A colormap made with [lut()], such as `lut("inferno")`,
+#'   colours the overlay by its strength.
 #' @param threshold Optional threshold between 0 and 1 on the overlay
 #'   intensity: pixels below it are shown as background. `NULL` (the default)
 #'   shows the overlay as it is.
@@ -30,7 +31,7 @@ add_overlay <- function(montage, ..., name = "overlay", color = "white", thresho
   check_tidymontage(montage)
   call <- rlang::current_env()
   channels <- virtual_members(rlang::enquos(...), montage, name, "overlay", call)
-  check_color(color, "color")
+  check_color_or_lut(color, cli::format_inline("{.arg color}"))
   if (!is.null(threshold) && (!is.numeric(threshold) || length(threshold) != 1 || is.na(threshold) ||
     threshold < 0 || threshold > 1)) {
     cli::cli_abort("{.arg threshold} must be a single number between 0 and 1, or {.code NULL}.")
@@ -46,7 +47,7 @@ format.tidymontage_step_add_overlay <- function(x, ...) {
   args <- c(
     format_channel_names(p$channels),
     paste0("name = \"", p$name, "\""),
-    if (!identical(p$color, "white")) paste0("color = \"", p$color, "\""),
+    if (!identical(p$color, "white")) paste0("color = ", format_color(p$color)),
     if (!is.null(p$threshold)) paste0("threshold = ", p$threshold)
   )
   paste0("add_overlay(", paste(args, collapse = ", "), ")")

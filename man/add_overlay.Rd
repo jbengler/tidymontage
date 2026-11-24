@@ -15,7 +15,8 @@ strings for names with spaces, e.g. \code{`Alexa Fluor 488`}.}
 \item{name}{Name of the overlay, as it appears in the layout and in labels.}
 
 \item{color}{Colour of the overlay. \code{"black"} shows it inverted, as dark
-signal on white.}
+signal on white. A colormap made with \code{\link[=lut]{lut()}}, such as \code{lut("inferno")},
+colours the overlay by its strength.}
 
 \item{threshold}{Optional threshold between 0 and 1 on the overlay
 intensity: pixels below it are shown as background. \code{NULL} (the default)

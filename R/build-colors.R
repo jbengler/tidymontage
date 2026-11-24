@@ -58,7 +58,7 @@ montage_colors <- function(panels, images, colors) {
   col <- if ("color" %in% names(images)) images$color[panels$.image] else rep(NA_character_, nrow(panels))
   ch <- panels$channel
   override <- ch %in% names(colors)
-  col[override] <- unlist(colors[ch[override]])
+  col[override] <- vapply(colors[ch[override]], single_color, character(1))
   col[is.na(col)] <- "#FFFFFF"
   col
 }
@@ -66,28 +66,36 @@ montage_colors <- function(panels, images, colors) {
 # Panel styles -----------------------------------------------------------------------
 
 # Colours and background of each panel, without reading pixels. `.colors`
-# holds one colour per source image. A single channel coloured black is drawn
-# inverted on white; everything else, and every merge, on black. In merges,
-# black members use their original colour (the `color` column) unless the
-# merge sets one.
+# holds one colour per source image; `.lut` the LUT of panels shown with a
+# colormap (a single channel or an overlay), otherwise NULL. A single channel
+# coloured black is drawn inverted on white, a LUT panel on the first colour
+# of its map; everything else, and every merge, on black. In merges, black and
+# LUT members use their original colour (the `color` column) unless the merge
+# sets one.
 panel_styles <- function(panels, images, spec, call = rlang::caller_env()) {
   invisible_in <- character()
+  luts <- vector("list", nrow(panels))
+  lut_channels <- names(Filter(is_lut, spec$colors))
   cols <- lapply(seq_len(nrow(panels)), function(i) {
     src <- panels$.sources[[i]]
     ch <- as.character(images$channel[src])
     col <- montage_colors(tibble::tibble(.image = src, channel = ch), images, spec$colors)
     if (panels$.is_overlay[i]) {
-      return(spec$overlays[[panels$channel[i]]]$color)
+      col <- spec$overlays[[panels$channel[i]]]$color
+      if (is_lut(col)) luts[[i]] <<- col
+      return(single_color(col))
     }
     if (panels$.is_merge[i]) {
       original <- if ("color" %in% names(images)) images$color[src] else rep(NA_character_, length(src))
       original[is.na(original)] <- "#FFFFFF"
-      black <- is_black(col)
-      col[black] <- original[black]
+      fallback <- is_black(col) | ch %in% lut_channels
+      col[fallback] <- original[fallback]
       ov <- spec$merge_style[[panels$channel[i]]]$colors
       hit <- ch %in% names(ov)
       col[hit] <- unlist(ov[ch[hit]])
       if (any(is_black(col))) invisible_in <<- c(invisible_in, panels$channel[i])
+    } else if (ch[1] %in% lut_channels) {
+      luts[[i]] <<- spec$colors[[ch[1]]]
     }
     col
   })
@@ -102,9 +110,16 @@ panel_styles <- function(panels, images, spec, call = rlang::caller_env()) {
   }
   background <- vapply(seq_len(nrow(panels)), function(i) {
     single_colour <- !panels$.is_merge[i] || panels$.is_overlay[i]
-    if (single_colour && any(is_black(cols[[i]]))) "white" else "black"
+    if (!is.null(luts[[i]])) {
+      lut_low(luts[[i]])
+    } else if (single_colour && any(is_black(cols[[i]]))) {
+      "white"
+    } else {
+      "black"
+    }
   }, character(1))
   panels$.colors <- cols
+  panels$.lut <- luts
   panels$.background <- background
   panels
 }

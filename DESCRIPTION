@@ -7,7 +7,7 @@ Authors@R:
 Description: The goal of 'tidymontage' is to streamline the creation of
     publication-ready microscopy figure montages. Images are described in a
     tidy data frame, and montage components such as projections, exposure,
-    colours, merges, crops, zooms and scale bars are added with a
+    colours, colormaps, merges, crops, zooms and scale bars are added with a
     consistent, pipeable syntax. Pixels are read lazily, and montages are
     drawn and saved at an exact physical size.
 License: MIT + file LICENSE
@@ -26,6 +26,7 @@ Imports:
     tools,
     utils,
     vctrs,
+    viridisLite,
     xml2
 Suggests:
     dplyr,

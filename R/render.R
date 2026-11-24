@@ -73,8 +73,8 @@ montage_grob <- function(b) {
       just = c("left", "bottom"), interpolate = FALSE, name = paste0("image-", i)
     ))
   }
-  # white panels get a thin black frame, so they stand out from the page
-  white <- p[p$.background %in% "white", , drop = FALSE]
+  # light panels get a thin black frame, so they stand out from the page
+  white <- p[is_light(p$.background), , drop = FALSE]
   if (nrow(white) > 0) {
     add(rect("frames", white$xmin, white$xmax, white$ymin, white$ymax, col = "black", fill = NA, lwd = lwd(0.25)))
   }
@@ -135,7 +135,24 @@ montage_grob <- function(b) {
   if (!is.null(b$legend)) {
     lg <- b$legend
     st <- attr(lg, "style")
-    add(rect("legend-keys", lg$xmin, lg$xmax, lg$ymin, lg$ymax, fill = lg$color, col = "grey40", lwd = lwd(0.15)))
+    bar <- !vapply(lg$lut %||% vector("list", nrow(lg)), is.null, logical(1))
+    for (k in which(bar)) {
+      add(grid::rasterGrob(
+        matrix(lut_table(lg$lut[[k]]), nrow = 1), x = n(lg$xmin[k]), y = n(H - lg$ymax[k]),
+        width = n(lg$xmax[k] - lg$xmin[k]), height = n(lg$ymax[k] - lg$ymin[k]),
+        just = c("left", "bottom"), interpolate = FALSE, name = paste0("legend-bar-", k)
+      ))
+    }
+    add(rect("legend-keys", lg$xmin, lg$xmax, lg$ymin, lg$ymax,
+             fill = ifelse(bar, NA, lg$color), col = "grey40", lwd = lwd(0.15)))
+    if (!is.null(lg$range_lo)) {
+      for (k in which(!is.na(lg$range_lo))) {
+        add(text(paste0("legend-range-lo-", k), lg$range_lo[k], lg$xmin[k], lg$ymax[k] + 0.4, hjust = 0, vjust = 1,
+                 fontsize = range_label_size(st), col = st$color))
+        add(text(paste0("legend-range-hi-", k), lg$range_hi[k], lg$xmax[k], lg$ymax[k] + 0.4, hjust = 1, vjust = 1,
+                 fontsize = range_label_size(st), col = st$color))
+      }
+    }
     texts("legend-label", data.frame(x = lg$text_x, y = lg$text_y, hjust = 0), lg$label, st$size, st$color)
   }
   hd <- b$headers %||% list(size = 7, color = "black")

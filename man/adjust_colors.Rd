@@ -11,7 +11,8 @@ adjust_colors(montage, ...)
 
 \item{...}{Name-value pairs of channel names and colours, for example
 \code{DAPI = "#0072B2"}. Colours can be any colour R understands, such as hex
-strings or names like \code{"white"}.}
+strings or names like \code{"white"}, or colormaps made with \code{\link[=lut]{lut()}}, for
+example \code{GCaMP = lut("magma")}.}
 }
 \value{
 The montage with the colour step added.
@@ -22,8 +23,14 @@ default, each image is shown in the colour of its \code{color} column, which
 \code{\link[=read_images]{read_images()}} fills from the microscope metadata. \code{adjust_colors()}
 overrides it for the channels you name.
 }
+\details{
+Instead of a single colour, a channel can get a colormap such as magma or
+viridis with \code{\link[=lut]{lut()}}. In merges, such a channel uses its original colour
+(see \code{\link[=add_merge]{add_merge()}}).
+}
 \examples{
 \dontrun{
 montage |> adjust_colors(DAPI = "#0072B2", GFP = "#009E73")
+montage |> adjust_colors(GCaMP = lut("magma"))
 }
 }

@@ -428,6 +428,26 @@ cells |>
 
 <img src="man/figures/README-ink.png" alt="" width="243" />
 
+### Colormaps
+
+Instead of a single colour, `lut()` colours a channel with a colormap
+such as magma or viridis. Perceptually uniform maps show differences in
+intensity more faithfully, which helps with quantitative images.
+Overlays can use a colormap too. Merges need single colours, so there,
+colormap channels use their original colour, like black channels do. The
+legend shows colormaps as colour bars, labelled with the display range:
+
+``` r
+cells |>
+  tidymontage(x = mutant, channel = c("Cy3", "overlap", "merge")) |>
+  adjust_colors(Cy3 = lut("magma")) |>
+  add_overlay(Cy3, `Alexa Fluor 488`, name = "overlap", color = lut("viridis")) |>
+  add_merge(Cy3, `Alexa Fluor 488`) |>
+  add_color_legend()
+```
+
+<img src="man/figures/README-colormaps.png" alt="" width="243" />
+
 ### Crops and zooms
 
 `add_crop()` shows a region of each image. The size is given once, in

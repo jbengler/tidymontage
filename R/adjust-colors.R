@@ -5,15 +5,21 @@
 #' [read_images()] fills from the microscope metadata. `adjust_colors()`
 #' overrides it for the channels you name.
 #'
+#' Instead of a single colour, a channel can get a colormap such as magma or
+#' viridis with [lut()]. In merges, such a channel uses its original colour
+#' (see [add_merge()]).
+#'
 #' @param montage A [tidymontage()] object.
 #' @param ... Name-value pairs of channel names and colours, for example
 #'   `DAPI = "#0072B2"`. Colours can be any colour R understands, such as hex
-#'   strings or names like `"white"`.
+#'   strings or names like `"white"`, or colormaps made with [lut()], for
+#'   example `GCaMP = lut("magma")`.
 #'
 #' @returns The montage with the colour step added.
 #' @examples
 #' \dontrun{
 #' montage |> adjust_colors(DAPI = "#0072B2", GFP = "#009E73")
+#' montage |> adjust_colors(GCaMP = lut("magma"))
 #' }
 #' @export
 adjust_colors <- function(montage, ...) {
@@ -33,11 +39,15 @@ adjust_colors <- function(montage, ...) {
     )
   }
   for (nm in names(colors)) {
-    col <- colors[[nm]]
-    ok <- rlang::is_string(col) && !inherits(try(grDevices::col2rgb(col), silent = TRUE), "try-error")
-    if (!ok) {
-      cli::cli_abort("The colour for {.val {nm}} must be a single valid colour, not {.obj_type_friendly {col}}.")
-    }
+    check_color_or_lut(colors[[nm]], cli::format_inline("The colour for {.val {nm}}"))
   }
-  add_step(montage, new_step("adjust_colors", lapply(colors, as.character)))
+  add_step(montage, new_step("adjust_colors", lapply(colors, function(x) if (is_lut(x)) x else as.character(x))))
+}
+
+#' @export
+format.tidymontage_step_adjust_colors <- function(x, ...) {
+  args <- vapply(names(x$params), function(nm) {
+    paste0(format_channel_names(nm), " = ", format_color(x$params[[nm]]))
+  }, character(1))
+  paste0("adjust_colors(", paste(args, collapse = ", "), ")")
 }

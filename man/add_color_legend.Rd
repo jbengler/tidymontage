@@ -8,7 +8,8 @@ add_color_legend(
   montage,
   position = c("bottom", "top", "right"),
   size = 7,
-  color = "black"
+  color = "black",
+  ranges = TRUE
 )
 }
 \arguments{
@@ -20,6 +21,8 @@ add_color_legend(
 \item{size}{Text size in points.}
 
 \item{color}{Text colour.}
+
+\item{ranges}{If \code{TRUE}, label colour bars with the display range.}
 }
 \value{
 The montage with the legend step added.
@@ -32,6 +35,14 @@ merges; merges themselves are not listed. Black channels (shown inverted)
 are left out, since their swatches would all look the same; their colours
 in merges are listed instead. The montage grows by the space the legend
 needs, so the panels keep their size.
+}
+\details{
+Channels and overlays coloured with a colormap (\code{\link[=lut]{lut()}}) are shown with a
+colour bar instead of a swatch. With \code{ranges = TRUE}, the ends of a
+channel's bar are labelled with its display range (see
+\code{\link[=adjust_exposure]{adjust_exposure()}}). This needs one range for all images of the channel,
+which is the default; bars of channels with several ranges, and of
+overlays, are left unlabelled.
 }
 \examples{
 \dontrun{

@@ -27,6 +27,7 @@ reference:
     Adjust stuff.
 - contents:
   - starts_with("adjust_")
+  - lut
 - title: Preview
   desc: >
     Find the ballpark for exposure and positions, then fine-tune the arguments.

@@ -15,7 +15,7 @@
       add_overlay(m, C1, C2, color = "notacolour")
     Condition
       Error in `add_overlay()`:
-      ! `color` must be a single valid colour.
+      ! `color` must be a single valid colour or a LUT, not a string.
     Code
       add_overlay(m, C1, C2, threshold = 2)
     Condition

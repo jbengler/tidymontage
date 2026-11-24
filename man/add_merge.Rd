@@ -33,8 +33,10 @@ shown with its own colour and display range, and the colours are added up
 like light. Member channels don't need their own panels.
 
 A channel coloured black (\code{"#000000"}) is shown inverted in its own panels,
-as dark signal on white. In a merge, it uses its original colour from the
-image metadata (the \code{color} column) instead, unless \code{colors} sets one.
+as dark signal on white. A channel coloured with a colormap (\code{\link[=lut]{lut()}}) is
+shown with its map. Merges need single colours: in a merge, such channels
+use their original colour from the image metadata (the \code{color} column)
+instead, unless \code{colors} sets one.
 
 A merge combines the images that would share a panel apart from their
 channel, typically the channels of one file. Every panel of the merge needs

@@ -37,8 +37,14 @@ montage_build <- function(montage, dpi = 150, call = rlang::caller_env()) {
       if (!is.null(threshold)) v[v < threshold] <- 0
       values <- list(v)
     }
+    lt <- panels$.lut[[i]]
+    if (!is.null(lt)) {
+      return(pack_raster(lut_rgb(values[[1]], lut_table(lt))))
+    }
     pack_raster(compose_panel(values, panels$.colors[[i]], panels$.background[i]))
   })
+
+  legend <- if (!is.null(space$legend)) legend_ranges(space$legend, sources, call = call)
 
   single <- !panels$.is_merge
   at <- match(panels$.image, used)
@@ -48,7 +54,7 @@ montage_build <- function(montage, dpi = 150, call = rlang::caller_env()) {
 
   list(
     panels = panels, labels = space$labels, lines = space$lines, boxes = space$boxes,
-    scale_bars = space$scale_bars, headers = space$headers, legend = space$legend, preview = space$preview,
+    scale_bars = space$scale_bars, headers = space$headers, legend = legend, preview = space$preview,
     side_labels = space$side_labels,
     width = space$width, height = space$height, rasters = rasters
   )

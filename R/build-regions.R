@@ -136,8 +136,8 @@ montage_boxes <- function(space, panels, images, views, call = rlang::caller_env
         next
       }
       b <- as.data.frame(as.list(b))
-      # boxes contrast with the panel: black on white panels
-      b$color <- if (identical(panels$.background[i], "white")) "black" else "white"
+      # boxes contrast with the panel: black on light panels
+      b$color <- ink_on(panels$.background[i])
       boxes[[length(boxes) + 1]] <- b
     }
   }

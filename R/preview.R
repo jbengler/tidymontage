@@ -188,7 +188,7 @@ preview_positions_overlay <- function(panels, data, images, pp, call) {
     p <- panels[i, ]
     w <- p$xmax - p$xmin
     h <- p$ymax - p$ymin
-    ink <- if (identical(p$.background, "white")) "black" else "white"
+    ink <- ink_on(p$.background)
     at <- seq(0.1, 0.9, by = 0.1)
     lines[[i]] <- rbind(
       data.frame(x = p$xmin + at * w, xend = p$xmin + at * w, y = p$ymin, yend = p$ymax, color = ink),
