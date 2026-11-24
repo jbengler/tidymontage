@@ -48,7 +48,7 @@ montage_build <- function(montage, dpi = 150, call = rlang::caller_env()) {
 
   list(
     panels = panels, labels = space$labels, lines = space$lines, boxes = space$boxes,
-    scale_bars = space$scale_bars, headers = space$headers, legend = space$legend,
+    scale_bars = space$scale_bars, headers = space$headers, legend = space$legend, preview = space$preview,
     side_labels = space$side_labels,
     width = space$width, height = space$height, rasters = rasters
   )
@@ -80,6 +80,13 @@ montage_layout_space <- function(montage, spec = montage_spec(montage), views = 
   } else {
     extra <- legend_extent(NULL, NULL)
   }
+  if (!is.null(spec$preview_positions)) {
+    # room for the axis labels below and to the right of the panels
+    extra$bottom <- extra$bottom + 3.5
+    extra$right <- extra$right + 5
+    extra$left <- (extra$left %||% 0) + 1.5
+    geom <- montage_geometry(space, spec$size, spec$gap, spec$headers, extra, call = call)
+  }
   legend_df <- if (!is.null(legend) && nrow(items) > 0) {
     p <- geom$panels
     legend_layout(items, legend, list(
@@ -87,9 +94,17 @@ montage_layout_space <- function(montage, spec = montage_spec(montage), views = 
       top = extra$top, bottom = extra$bottom
     ))
   }
+  panels <- geom$panels
+  if (".outline" %in% names(space$data)) {
+    panels$.outline <- space$data$.outline[panels$.row] %in% TRUE
+  }
+  overlay <- if (!is.null(spec$preview_positions)) {
+    preview_positions_overlay(panels, space$data, images, spec$preview_positions, call)
+  }
   list(
     legend = legend_df,
-    panels = geom$panels,
+    panels = panels,
+    preview = overlay,
     data = space$data,
     labels = geom$labels,
     lines = geom$lines,

@@ -18,7 +18,7 @@ montage_spec <- function(montage) {
     layout = setup$layout, gap = setup$gap, size = setup$size,
     colors = list(), exposure = default_exposure(), merges = list(), merge_style = list(),
     overlays = list(),
-    crop = NULL, zooms = list(), scale_bar = NULL, legend = NULL,
+    crop = NULL, zooms = list(), scale_bar = NULL, legend = NULL, preview_positions = NULL,
     headers = list(x = TRUE, y = TRUE, size = 7, color = "black")
   )
   for (step in montage$steps) {
@@ -44,6 +44,8 @@ montage_spec <- function(montage) {
       spec$zooms[[p$name]] <- p
     } else if (step$type == "add_scale_bar") {
       spec$scale_bar <- p
+    } else if (step$type == "preview_positions") {
+      spec$preview_positions <- p
     } else if (step$type == "add_color_legend") {
       spec$legend <- p
     } else if (step$type == "adjust_headers") {

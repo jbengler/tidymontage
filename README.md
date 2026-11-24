@@ -54,11 +54,11 @@ so the brightness of both mutants can be compared:
 library(tidymontage)
 library(dplyr)
 #> 
-#> Attaching package: 'dplyr'
-#> The following objects are masked from 'package:stats':
+#> Attache Paket: 'dplyr'
+#> Die folgenden Objekte sind maskiert von 'package:stats':
 #> 
 #>     filter, lag
-#> The following objects are masked from 'package:base':
+#> Die folgenden Objekte sind maskiert von 'package:base':
 #> 
 #>     intersect, setdiff, setequal, union
 library(tidyr)
@@ -88,21 +88,21 @@ drawn.
 ``` r
 images <- read_images("demo_images")
 images
-#> # A tibble: 46 × 20
+#> # A tibble: 46 x 20
 #>    filepath   series channel_index channel     z     t    img color channel_name fluor size_x size_y
 #>    <chr>       <int>         <int> <chr>   <int> <int>  <img> <chr> <chr>        <chr>  <int>  <int>
-#>  1 demo_imag…      1             1 C1          1     1 page 1 #FF0… <NA>         <NA>    1796   1796
-#>  2 demo_imag…      1             2 C2          1     1 page 2 #00F… <NA>         <NA>    1796   1796
-#>  3 demo_imag…      1             3 C3          1     1 page 3 #FFF… <NA>         <NA>    1796   1796
-#>  4 demo_imag…      1             1 Cy3         1     1 page 1 #FF0… Ch2-T1       Cy3     1796   1796
-#>  5 demo_imag…      1             2 Alexa …     1     1 page 2 #00F… Ch1-T2       Alex…   1796   1796
-#>  6 demo_imag…      1             3 DAPI        1     1 page 3 #FFF… Ch1-T3       DAPI    1796   1796
-#>  7 demo_imag…      1             1 Cy3         1     1 page 1 #FF0… Ch2-T1       Cy3     1796   1796
-#>  8 demo_imag…      1             2 Alexa …     1     1 page 2 #00F… Ch1-T2       Alex…   1796   1796
-#>  9 demo_imag…      1             3 DAPI        1     1 page 3 #FFF… Ch1-T3       DAPI    1796   1796
-#> 10 demo_imag…      1             1 C1          1     1 page 1 #FF0… <NA>         <NA>    1796   1796
-#> # ℹ 36 more rows
-#> # ℹ 8 more variables: size_z <int>, size_t <int>, bit_depth <int>, pixel_size <dbl>,
+#>  1 demo_imag~      1             1 Cy3         1     1 page 1 #FF0~ Ch2-T1       Cy3     1796   1796
+#>  2 demo_imag~      1             2 Alexa ~     1     1 page 2 #00F~ Ch1-T2       Alex~   1796   1796
+#>  3 demo_imag~      1             3 DAPI        1     1 page 3 #FFF~ Ch1-T3       DAPI    1796   1796
+#>  4 demo_imag~      1             1 Cy3         1     1 page 1 #FF0~ Ch2-T1       Cy3     1796   1796
+#>  5 demo_imag~      1             2 Alexa ~     1     1 page 2 #00F~ Ch1-T2       Alex~   1796   1796
+#>  6 demo_imag~      1             3 DAPI        1     1 page 3 #FFF~ Ch1-T3       DAPI    1796   1796
+#>  7 demo_imag~      1             1 C1          1     1 page 1 #FF0~ <NA>         <NA>    1796   1796
+#>  8 demo_imag~      1             2 C2          1     1 page 2 #00F~ <NA>         <NA>    1796   1796
+#>  9 demo_imag~      1             3 C3          1     1 page 3 #FFF~ <NA>         <NA>    1796   1796
+#> 10 demo_imag~      1             1 Cy3         1     1 page 1 #FF0~ Ch2-T1       Cy3     1796   1796
+#> # i 36 more rows
+#> # i 8 more variables: size_z <int>, size_t <int>, bit_depth <int>, pixel_size <dbl>,
 #> #   pixel_unit <chr>, z_step <dbl>, meta_source <chr>, pixel_size_source <chr>
 ```
 
@@ -112,15 +112,15 @@ come from?
 ``` r
 images |>
   count(file = basename(filepath), meta_source, pixel_size_source, name = "images")
-#> # A tibble: 7 × 4
+#> # A tibble: 7 x 4
 #>   file                                                          meta_source pixel_size_source images
 #>   <chr>                                                         <chr>       <chr>              <int>
-#> 1 Cos7_eGFP-hL6-I56A_HA-hBCL-xL_63x_2019_12_20__12_23_13.ome.t… ome-xml     ome-xml                3
+#> 1 Cos7_eGFP-hL6-I56A_HA-hBCL-xL_63x_2019_12_20__12_23_13.ome.t~ ome-xml     ome-xml                3
 #> 2 Cos7_eGFP-hL6-I56A_HA-hBCL-xL_63x_2019_12_20__12_23_13.tif    imagej      imagej                 3
-#> 3 Cos7_eGFP-hL6-I56A_HA-hBCL-xL_63x_2019_12_20__12_23_13_OME.t… imagej      tiff                   3
-#> 4 Cos7_eGFP-hL6-L59A_HA-hBCL-xL_63x_2019_12_20__12_29_05.ome.t… ome-xml     ome-xml                3
+#> 3 Cos7_eGFP-hL6-I56A_HA-hBCL-xL_63x_2019_12_20__12_23_13_OME.t~ imagej      tiff                   3
+#> 4 Cos7_eGFP-hL6-L59A_HA-hBCL-xL_63x_2019_12_20__12_29_05.ome.t~ ome-xml     ome-xml                3
 #> 5 Cos7_eGFP-hL6-L59A_HA-hBCL-xL_63x_2019_12_20__12_29_05.tif    imagej      imagej                 3
-#> 6 Cos7_eGFP-hL6-L59A_HA-hBCL-xL_63x_2019_12_20__12_29_05_OME.t… imagej      tiff                   3
+#> 6 Cos7_eGFP-hL6-L59A_HA-hBCL-xL_63x_2019_12_20__12_29_05_OME.t~ imagej      tiff                   3
 #> 7 DIV14Actin-01-Airyscan Processing-02.tif                      imagej      imagej                28
 ```
 
@@ -131,7 +131,7 @@ microscope metadata:
 images |>
   filter(grepl("Airyscan", filepath), z == 1) |>
   select(channel, channel_name, color, size_x, size_z, pixel_size, z_step)
-#> # A tibble: 4 × 7
+#> # A tibble: 4 x 7
 #>   channel         channel_name color   size_x size_z pixel_size z_step
 #>   <chr>           <chr>        <chr>    <int>  <int>      <dbl>  <dbl>
 #> 1 Alexa Fluor 647 AF647-T1     #FF00FF   2024      7     0.0707    1.8
@@ -177,7 +177,7 @@ the pixels are needed.
 projected <- stack |>
   summarise(img = max(img), .by = c(filepath, channel, color))
 projected
-#> # A tibble: 4 × 4
+#> # A tibble: 4 x 4
 #>   filepath                                             channel         color        img
 #>   <chr>                                                <chr>           <chr>      <img>
 #> 1 demo_images/DIV14Actin-01-Airyscan Processing-02.tif Alexa Fluor 647 #FF00FF max of 7
@@ -199,7 +199,7 @@ first:
 stack |>
   filter(z %in% 3:5) |>
   summarise(img = max(img), .by = channel)
-#> # A tibble: 4 × 2
+#> # A tibble: 4 x 2
 #>   channel              img
 #>   <chr>              <img>
 #> 1 Alexa Fluor 647 max of 3
@@ -218,7 +218,7 @@ projections <- stack |>
   summarise(max = max(img), mean = mean(img), min = min(img), .by = c(filepath, channel, color)) |>
   pivot_longer(c(max, mean, min), names_to = "projection", values_to = "img")
 projections
-#> # A tibble: 3 × 5
+#> # A tibble: 3 x 5
 #>   filepath                                             channel       color   projection       img
 #>   <chr>                                                <chr>         <chr>   <chr>          <img>
 #> 1 demo_images/DIV14Actin-01-Airyscan Processing-02.tif Hoechst 33258 #0000FF max         max of 7
@@ -255,7 +255,7 @@ cells <- cells |>
   left_join(targets, by = "channel")
 
 cells |> select(mutant, channel, target, color, img)
-#> # A tibble: 6 × 5
+#> # A tibble: 6 x 5
 #>   mutant channel         target    color      img
 #>   <chr>  <chr>           <chr>     <chr>    <img>
 #> 1 I56A   Cy3             HA-BCL-xL #FF00FF page 1
@@ -286,10 +286,10 @@ cells |>
   mutate(color = case_match(channel, "Cy3" ~ "#E69F00", "Alexa Fluor 488" ~ "#56B4E9", "DAPI" ~ "#FFFFFF")) |>
   tidymontage(x = target)
 #> Warning: There was 1 warning in `mutate()`.
-#> ℹ In argument: `color = case_match(...)`.
+#> i In argument: `color = case_match(...)`.
 #> Caused by warning:
 #> ! `case_match()` was deprecated in dplyr 1.2.0.
-#> ℹ Please use `recode_values()` instead.
+#> i Please use `recode_values()` instead.
 ```
 
 <img src="man/figures/README-recolor.png" alt="" width="340" />
@@ -302,11 +302,11 @@ Images only support operations that make sense for images:
 # summing intensities across images is not a projection
 stack |> summarise(img = sum(img), .by = channel)
 #> Error in `summarise()`:
-#> ℹ In argument: `img = sum(img)`.
-#> ℹ In group 1: `channel = "Alexa Fluor 647"`.
+#> i In argument: `img = sum(img)`.
+#> i In group 1: `channel = "Alexa Fluor 647"`.
 #> Caused by error:
 #> ! `sum()` is not supported for images.
-#> ℹ Use `max()`, `min()` or `mean()` to project images.
+#> i Use `max()`, `min()` or `mean()` to project images.
 
 # images have no natural order
 stack |> arrange(img)
@@ -316,8 +316,8 @@ stack |> arrange(img)
 # projecting images of different sizes (2024 x 2024 and 1796 x 1796 pixels)
 images |> summarise(img = max(img), .by = channel_index)
 #> Error in `summarise()`:
-#> ℹ In argument: `img = max(img)`.
-#> ℹ In group 1: `channel_index = 1`.
+#> i In argument: `img = max(img)`.
+#> i In group 1: `channel_index = 1`.
 #> Caused by error:
 #> ! Can't compute `max()` of images with different sizes.
 ```
@@ -454,10 +454,175 @@ cells |>
   tidymontage(x = mutant) |>
   add_merge(Cy3, `Alexa Fluor 488`, DAPI) |>
   add_crop(width = 60, center = crops) |>
-  add_zoom(width = 15, center = zooms, box = "merge")
+  add_zoom(width = 15, center = zooms, box = "merge") |> str()
+#> List of 3
+#>  $ images: tibble [6 x 22] (S3: tbl_df/tbl/data.frame)
+#>   ..$ filepath         : chr [1:6] "demo_images/Cos7_eGFP-hL6-I56A_HA-hBCL-xL_63x_2019_12_20__12_23_13.ome.tif" "demo_images/Cos7_eGFP-hL6-I56A_HA-hBCL-xL_63x_2019_12_20__12_23_13.ome.tif" "demo_images/Cos7_eGFP-hL6-I56A_HA-hBCL-xL_63x_2019_12_20__12_23_13.ome.tif" "demo_images/Cos7_eGFP-hL6-L59A_HA-hBCL-xL_63x_2019_12_20__12_29_05.ome.tif" ...
+#>   ..$ series           : int [1:6] 1 1 1 1 1 1
+#>   ..$ channel_index    : int [1:6] 1 2 3 1 2 3
+#>   ..$ channel          : chr [1:6] "Cy3" "Alexa Fluor 488" "DAPI" "Cy3" ...
+#>   ..$ z                : int [1:6] 1 1 1 1 1 1
+#>   ..$ t                : int [1:6] 1 1 1 1 1 1
+#>   ..$ img              : img [1:6] 
+#>   .. ..$ :List of 1
+#>   .. .. ..$ node:List of 9
+#>   .. .. .. ..$ type      : chr "source"
+#>   .. .. .. ..$ file      : chr "/Users/janbroderengler/GoogleDrive/R/packages/tidymontage/demo_images/Cos7_eGFP-hL6-I56A_HA-hBCL-xL_63x_2019_12"| __truncated__
+#>   .. .. .. ..$ page      : int 1
+#>   .. .. .. ..$ sample    : int NA
+#>   .. .. .. ..$ palette   : logi TRUE
+#>   .. .. .. ..$ bits      : int 16
+#>   .. .. .. ..$ size_x    : int 1796
+#>   .. .. .. ..$ size_y    : int 1796
+#>   .. .. .. ..$ pixel_size: num 0.0707
+#>   .. ..$ :List of 1
+#>   .. .. ..$ node:List of 9
+#>   .. .. .. ..$ type      : chr "source"
+#>   .. .. .. ..$ file      : chr "/Users/janbroderengler/GoogleDrive/R/packages/tidymontage/demo_images/Cos7_eGFP-hL6-I56A_HA-hBCL-xL_63x_2019_12"| __truncated__
+#>   .. .. .. ..$ page      : int 2
+#>   .. .. .. ..$ sample    : int NA
+#>   .. .. .. ..$ palette   : logi TRUE
+#>   .. .. .. ..$ bits      : int 16
+#>   .. .. .. ..$ size_x    : int 1796
+#>   .. .. .. ..$ size_y    : int 1796
+#>   .. .. .. ..$ pixel_size: num 0.0707
+#>   .. ..$ :List of 1
+#>   .. .. ..$ node:List of 9
+#>   .. .. .. ..$ type      : chr "source"
+#>   .. .. .. ..$ file      : chr "/Users/janbroderengler/GoogleDrive/R/packages/tidymontage/demo_images/Cos7_eGFP-hL6-I56A_HA-hBCL-xL_63x_2019_12"| __truncated__
+#>   .. .. .. ..$ page      : int 3
+#>   .. .. .. ..$ sample    : int NA
+#>   .. .. .. ..$ palette   : logi TRUE
+#>   .. .. .. ..$ bits      : int 16
+#>   .. .. .. ..$ size_x    : int 1796
+#>   .. .. .. ..$ size_y    : int 1796
+#>   .. .. .. ..$ pixel_size: num 0.0707
+#>   .. ..$ :List of 1
+#>   .. .. ..$ node:List of 9
+#>   .. .. .. ..$ type      : chr "source"
+#>   .. .. .. ..$ file      : chr "/Users/janbroderengler/GoogleDrive/R/packages/tidymontage/demo_images/Cos7_eGFP-hL6-L59A_HA-hBCL-xL_63x_2019_12"| __truncated__
+#>   .. .. .. ..$ page      : int 1
+#>   .. .. .. ..$ sample    : int NA
+#>   .. .. .. ..$ palette   : logi TRUE
+#>   .. .. .. ..$ bits      : int 16
+#>   .. .. .. ..$ size_x    : int 1796
+#>   .. .. .. ..$ size_y    : int 1796
+#>   .. .. .. ..$ pixel_size: num 0.0707
+#>   .. ..$ :List of 1
+#>   .. .. ..$ node:List of 9
+#>   .. .. .. ..$ type      : chr "source"
+#>   .. .. .. ..$ file      : chr "/Users/janbroderengler/GoogleDrive/R/packages/tidymontage/demo_images/Cos7_eGFP-hL6-L59A_HA-hBCL-xL_63x_2019_12"| __truncated__
+#>   .. .. .. ..$ page      : int 2
+#>   .. .. .. ..$ sample    : int NA
+#>   .. .. .. ..$ palette   : logi TRUE
+#>   .. .. .. ..$ bits      : int 16
+#>   .. .. .. ..$ size_x    : int 1796
+#>   .. .. .. ..$ size_y    : int 1796
+#>   .. .. .. ..$ pixel_size: num 0.0707
+#>   .. ..$ :List of 1
+#>   .. .. ..$ node:List of 9
+#>   .. .. .. ..$ type      : chr "source"
+#>   .. .. .. ..$ file      : chr "/Users/janbroderengler/GoogleDrive/R/packages/tidymontage/demo_images/Cos7_eGFP-hL6-L59A_HA-hBCL-xL_63x_2019_12"| __truncated__
+#>   .. .. .. ..$ page      : int 3
+#>   .. .. .. ..$ sample    : int NA
+#>   .. .. .. ..$ palette   : logi TRUE
+#>   .. .. .. ..$ bits      : int 16
+#>   .. .. .. ..$ size_x    : int 1796
+#>   .. .. .. ..$ size_y    : int 1796
+#>   .. .. .. ..$ pixel_size: num 0.0707
+#>   ..$ color            : chr [1:6] "#FF00FF" "#00FF00" "#FFFFFF" "#FF00FF" ...
+#>   ..$ channel_name     : chr [1:6] "Ch2-T1" "Ch1-T2" "Ch1-T3" "Ch2-T1" ...
+#>   ..$ fluor            : chr [1:6] "Cy3" "Alexa Fluor 488" "DAPI" "Cy3" ...
+#>   ..$ size_x           : int [1:6] 1796 1796 1796 1796 1796 1796
+#>   ..$ size_y           : int [1:6] 1796 1796 1796 1796 1796 1796
+#>   ..$ size_z           : int [1:6] 1 1 1 1 1 1
+#>   ..$ size_t           : int [1:6] 1 1 1 1 1 1
+#>   ..$ bit_depth        : int [1:6] 16 16 16 16 16 16
+#>   ..$ pixel_size       : num [1:6] 0.0707 0.0707 0.0707 0.0707 0.0707 ...
+#>   ..$ pixel_unit       : chr [1:6] "<U+00B5>m" "<U+00B5>m" "<U+00B5>m" "<U+00B5>m" ...
+#>   ..$ z_step           : num [1:6] 1 1 1 1 1 1
+#>   ..$ meta_source      : chr [1:6] "ome-xml" "ome-xml" "ome-xml" "ome-xml" ...
+#>   ..$ pixel_size_source: chr [1:6] "ome-xml" "ome-xml" "ome-xml" "ome-xml" ...
+#>   ..$ mutant           : chr [1:6] "I56A" "I56A" "I56A" "L59A" ...
+#>   ..$ target           : chr [1:6] "HA-BCL-xL" "eGFP-L6" "nuclei" "HA-BCL-xL" ...
+#>  $ setup :List of 6
+#>   ..$ x     : chr "mutant"
+#>   ..$ y     : chr(0) 
+#>   ..$ levels: list()
+#>   ..$ layout:List of 3
+#>   .. ..$ type   : chr "grid"
+#>   .. ..$ channel: chr "auto"
+#>   .. ..$ view   : chr "auto"
+#>   .. ..- attr(*, "class")= chr "tidymontage_layout"
+#>   ..$ gap   : num 1
+#>   ..$ size  :List of 3
+#>   .. ..$ width : num 90
+#>   .. ..$ height: num 90
+#>   .. ..$ given :List of 3
+#>   .. .. ..$ width : num 90
+#>   .. .. ..$ height: num 90
+#>   .. .. ..$ units : chr "mm"
+#>  $ steps :List of 3
+#>   ..$ :List of 2
+#>   .. ..$ type  : chr "add_merge"
+#>   .. ..$ params:List of 3
+#>   .. .. ..$ channels: chr [1:3] "Cy3" "Alexa Fluor 488" "DAPI"
+#>   .. .. ..$ name    : chr "merge"
+#>   .. .. ..$ colors  : NULL
+#>   .. ..- attr(*, "class")= chr [1:2] "tidymontage_step_add_merge" "tidymontage_step"
+#>   ..$ :List of 2
+#>   .. ..$ type  : chr "add_crop"
+#>   .. ..$ params:List of 6
+#>   .. .. ..$ name        : chr "crop"
+#>   .. .. ..$ width       : num 60
+#>   .. .. ..$ height      : num 60
+#>   .. .. ..$ units       : chr "um"
+#>   .. .. ..$ center      : tibble [2 x 3] (S3: tbl_df/tbl/data.frame)
+#>   .. .. .. ..$ mutant: chr [1:2] "I56A" "L59A"
+#>   .. .. .. ..$ x     : num [1:2] 0.47 0.42
+#>   .. .. .. ..$ y     : num [1:2] 0.4 0.55
+#>   .. .. ..$ center_units: chr "rel"
+#>   .. ..- attr(*, "class")= chr [1:2] "tidymontage_step_add_crop" "tidymontage_step"
+#>   ..$ :List of 2
+#>   .. ..$ type  : chr "add_zoom"
+#>   .. ..$ params:List of 7
+#>   .. .. ..$ name        : chr "zoom"
+#>   .. .. ..$ width       : num 15
+#>   .. .. ..$ height      : num 15
+#>   .. .. ..$ units       : chr "um"
+#>   .. .. ..$ center      : tibble [2 x 3] (S3: tbl_df/tbl/data.frame)
+#>   .. .. .. ..$ mutant: chr [1:2] "I56A" "L59A"
+#>   .. .. .. ..$ x     : num [1:2] 0.5 0.4
+#>   .. .. .. ..$ y     : num [1:2] 0.4 0.48
+#>   .. .. ..$ center_units: chr "rel"
+#>   .. .. ..$ box         : chr "merge"
+#>   .. ..- attr(*, "class")= chr [1:2] "tidymontage_step_add_zoom" "tidymontage_step"
+#>  - attr(*, "class")= chr "tidymontage"
+
+cells |>
+  tidymontage(x = mutant) |>
+  add_merge(Cy3, `Alexa Fluor 488`, DAPI) |>
+  add_crop(width = 60, center = crops) |>
+  add_zoom(width = 15, center = zooms, box = "merge") |> 
+  preview_positions()
 ```
 
-<img src="man/figures/README-crop-zoom.png" alt="" width="358" />
+<img src="man/figures/README-crop-zoom.png" alt="" width="364" />
+
+``` r
+
+cells |>
+  tidymontage(x = mutant) |>
+  add_merge(Cy3, `Alexa Fluor 488`, DAPI) |>
+  add_crop(width = 60, center = crops) |>
+  add_zoom(width = 15, center = zooms, box = "merge") |> 
+  preview_exposure("DAPI")
+#> i "DAPI": 'Cos7_eGFP-hL6-I56A_HA-hBCL-xL_63x_2019_12_20__12_23_13.ome.tif' (the brightest of 2
+#>   images).
+#> i Percentiles from 2 images sharing its display range.
+```
+
+<img src="man/figures/README-crop-zoom-2.png" alt="" width="358" />
 
 Display ranges are computed from the full images, so cropping doesn’t
 change brightness. Map `view` yourself to put views elsewhere, and
@@ -471,6 +636,42 @@ cells |>
 ```
 
 <img src="man/figures/README-zoom-rows.png" alt="" width="358" />
+
+### Finding exposure and positions
+
+Two previews help to find the ballpark before fine-tuning the arguments.
+`preview_exposure()` shows one image of a channel with 25 combinations
+of display ranges, ordered by how the image looks: brighter to the right
+(lower `max`), darker background downwards (higher `min`). The current
+setting is outlined. The percentiles come from all images of the
+channel, as in the montage:
+
+``` r
+montage_cz <- cells |>
+  tidymontage(x = mutant) |>
+  add_merge(Cy3, `Alexa Fluor 488`, DAPI) |>
+  add_crop(width = 60, center = crops) |>
+  add_zoom(width = 15, center = zooms)
+
+montage_cz |>
+  preview_exposure("Cy3")
+#> i "Cy3": 'Cos7_eGFP-hL6-L59A_HA-hBCL-xL_63x_2019_12_20__12_29_05.ome.tif' (the brightest of 2
+#>   images).
+#> i Percentiles from 2 images sharing its display range.
+```
+
+<img src="man/figures/README-preview-exposure.png" alt="" width="358" />
+
+`preview_positions()` shows the full images with relative axes from 0 to
+1, the values that `center` in `add_crop()` and `add_zoom()` expects.
+The current crop and zoom are outlined, which also shows their size:
+
+``` r
+montage_cz |>
+  preview_positions()
+```
+
+<img src="man/figures/README-preview-positions.png" alt="" width="364" />
 
 ### Hero layout
 
@@ -617,15 +818,15 @@ cat(format(montage), sep = "\n")
 #>   2. adjust_exposure(min = "p0.1", max = "p99.8", .by = channel)
 #>   3. add_merge(`Alexa Fluor 647`, `Alexa Fluor 555`, `Alexa Fluor 488`, `Hoechst 33258`, name = "merge")
 montage_panels(montage)
-#> # A tibble: 5 × 15
+#> # A tibble: 5 x 15
 #>     col   row channel view   xmin  ymin  xmax  ymax merge overlay background px_xmin px_xmax px_ymin
 #>   <int> <int> <chr>   <chr> <dbl> <dbl> <dbl> <dbl> <lgl> <lgl>   <chr>        <dbl>   <dbl>   <dbl>
-#> 1     1     1 Alexa … full    0    4.69  17.2  21.9 FALSE FALSE   black            1    2024       1
-#> 2     2     1 Alexa … full   18.2  4.69  35.4  21.9 FALSE FALSE   black            1    2024       1
-#> 3     3     1 Alexa … full   36.4  4.69  53.6  21.9 FALSE FALSE   black            1    2024       1
-#> 4     4     1 Hoechs… full   54.6  4.69  71.8  21.9 FALSE FALSE   black            1    2024       1
+#> 1     1     1 Alexa ~ full    0    4.69  17.2  21.9 FALSE FALSE   black            1    2024       1
+#> 2     2     1 Alexa ~ full   18.2  4.69  35.4  21.9 FALSE FALSE   black            1    2024       1
+#> 3     3     1 Alexa ~ full   36.4  4.69  53.6  21.9 FALSE FALSE   black            1    2024       1
+#> 4     4     1 Hoechs~ full   54.6  4.69  71.8  21.9 FALSE FALSE   black            1    2024       1
 #> 5     5     1 merge   full   72.8  4.69  90    21.9 TRUE  FALSE   black            1    2024       1
-#> # ℹ 1 more variable: px_ymax <dbl>
+#> # i 1 more variable: px_ymax <dbl>
 ```
 
 Like plots in tidyplots, montages have a **fixed physical size**: by
@@ -652,22 +853,22 @@ doesn’t:
 cells |> tidymontage(x = channel) |> montage_panels()
 #> Error in `montage_panels()`:
 #> ! 2 images would share one panel (channel = Cy3).
-#> ℹ Each panel shows one image. Summarise z-slices or time points first, e.g. `summarise(img =
+#> i Each panel shows one image. Summarise z-slices or time points first, e.g. `summarise(img =
 #>   max(img), .by = ...)`, or map another column such as filepath to `x` or `y`.
 
 # levels can be chosen and ordered
 cells |>
   tidymontage(x = mutant, channel = "DAPI") |>
   montage_panels()
-#> # A tibble: 2 × 16
+#> # A tibble: 2 x 16
 #>     col   row channel view  mutant  xmin  ymin  xmax  ymax merge overlay background px_xmin px_xmax
 #>   <int> <int> <chr>   <chr> <chr>  <dbl> <dbl> <dbl> <dbl> <lgl> <lgl>   <chr>        <dbl>   <dbl>
 #> 1     1     1 DAPI    full  I56A     0    4.69  44.5  49.2 FALSE FALSE   black            1    1796
 #> 2     2     1 DAPI    full  L59A    45.5  4.69  90    49.2 FALSE FALSE   black            1    1796
-#> # ℹ 2 more variables: px_ymin <dbl>, px_ymax <dbl>
+#> # i 2 more variables: px_ymin <dbl>, px_ymax <dbl>
 
 # unlinking display ranges across channels is possible, but flagged
 invisible(autoplot(tidymontage(cells, x = mutant) |> adjust_exposure(.by = mutant)))
 #> Warning in autoplot(adjust_exposure(tidymontage(cells, x = mutant), .by = mutant)): A display range is shared by several channels.
-#> ℹ Display ranges are usually linked per channel: include channel in `.by` of `adjust_exposure()`.
+#> i Display ranges are usually linked per channel: include channel in `.by` of `adjust_exposure()`.
 ```

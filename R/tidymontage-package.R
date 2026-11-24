@@ -8,4 +8,4 @@
 NULL
 
 # Column names used as defaults in tidy-evaluated arguments.
-utils::globalVariables("channel")
+utils::globalVariables(c("channel", "min_option", "max_option"))

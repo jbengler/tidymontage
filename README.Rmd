@@ -359,7 +359,21 @@ cells |>
   tidymontage(x = mutant) |>
   add_merge(Cy3, `Alexa Fluor 488`, DAPI) |>
   add_crop(width = 60, center = crops) |>
-  add_zoom(width = 15, center = zooms, box = "merge")
+  add_zoom(width = 15, center = zooms, box = "merge") |> str()
+
+cells |>
+  tidymontage(x = mutant) |>
+  add_merge(Cy3, `Alexa Fluor 488`, DAPI) |>
+  add_crop(width = 60, center = crops) |>
+  add_zoom(width = 15, center = zooms, box = "merge") |> 
+  preview_positions()
+
+cells |>
+  tidymontage(x = mutant) |>
+  add_merge(Cy3, `Alexa Fluor 488`, DAPI) |>
+  add_crop(width = 60, center = crops) |>
+  add_zoom(width = 15, center = zooms, box = "merge") |> 
+  preview_exposure("DAPI")
 ```
 
 Display ranges are computed from the full images, so cropping doesn't change
@@ -371,6 +385,35 @@ cells |>
   tidymontage(x = mutant, y = view, channel = "merge") |>
   add_merge(Cy3, `Alexa Fluor 488`, DAPI) |>
   add_zoom(width = 20, center = zooms)
+```
+
+### Finding exposure and positions
+
+Two previews help to find the ballpark before fine-tuning the arguments.
+`preview_exposure()` shows one image of a channel with 25 combinations of
+display ranges, ordered by how the image looks: brighter to the right (lower
+`max`), darker background downwards (higher `min`). The current setting is
+outlined. The percentiles come from all images of the channel, as in the
+montage:
+
+```{r preview-exposure}
+montage_cz <- cells |>
+  tidymontage(x = mutant) |>
+  add_merge(Cy3, `Alexa Fluor 488`, DAPI) |>
+  add_crop(width = 60, center = crops) |>
+  add_zoom(width = 15, center = zooms)
+
+montage_cz |>
+  preview_exposure("Cy3")
+```
+
+`preview_positions()` shows the full images with relative axes from 0 to 1,
+the values that `center` in `add_crop()` and `add_zoom()` expects. The
+current crop and zoom are outlined, which also shows their size:
+
+```{r preview-positions}
+montage_cz |>
+  preview_positions()
 ```
 
 ### Hero layout

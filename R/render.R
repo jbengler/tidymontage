@@ -17,6 +17,40 @@ montage_ggplot <- function(build) {
       fill = NA, colour = "black", linewidth = 0.25
     )))
   }
+  # previews: the current option is outlined
+  if (".outline" %in% names(p) && any(p$.outline)) {
+    o <- p[p$.outline, , drop = FALSE]
+    layers <- c(layers, list(ggplot2::annotate(
+      "rect", xmin = o$xmin - 0.4, xmax = o$xmax + 0.4, ymin = -o$ymax - 0.4, ymax = -o$ymin + 0.4,
+      fill = NA, colour = "#E69F00", linewidth = 0.8
+    )))
+  }
+  if (!is.null(build$preview)) {
+    pv <- build$preview
+    layers <- c(layers, list(
+      ggplot2::annotate(
+        "segment", x = pv$lines$x, xend = pv$lines$xend, y = -pv$lines$y, yend = -pv$lines$yend,
+        colour = pv$lines$color, alpha = 0.3, linewidth = 0.15
+      ),
+      ggplot2::annotate(
+        "text", x = pv$ticks$x, y = -pv$ticks$y, label = pv$ticks$label,
+        hjust = pv$ticks$hjust, vjust = pv$ticks$vjust, size = 5 / ggplot2::.pt, colour = "grey30"
+      )
+    ))
+    if (!is.null(pv$rects)) {
+      r <- pv$rects
+      layers <- c(layers, list(
+        ggplot2::annotate(
+          "rect", xmin = r$xmin, xmax = r$xmax, ymin = -r$ymax, ymax = -r$ymin,
+          fill = NA, colour = r$color, linewidth = 0.3
+        ),
+        ggplot2::annotate(
+          "text", x = r$xmin, y = -r$ymin + 0.3, label = r$label, hjust = 0, vjust = 0,
+          size = 5 / ggplot2::.pt, colour = r$color
+        )
+      ))
+    }
+  }
   if (!is.null(build$boxes) && nrow(build$boxes) > 0) {
     b <- build$boxes
     layers <- c(layers, list(ggplot2::annotate(
