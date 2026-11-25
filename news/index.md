@@ -1,0 +1,60 @@
+# Changelog
+
+## tidymontage (development version)
+
+- Grid rows and columns can differ in shape: panels in a row share a
+  height and panels in a column a width, instead of all panels sharing
+  one shape. For example, a row of square crops can sit above a row of
+  flat zoom strips (`y = view`), or images of another shape can fill a
+  row of their own. Shapes that don’t line up still give an error, now
+  naming a panel.
+
+- `layout_hero(stack = TRUE)` stacks the side panels so that each is as
+  long as the hero’s edge: strips below the hero as wide as the hero, or
+  beside it as high as the hero. Side panels can have another shape than
+  the hero, for example a flat zoom of each channel under a big merge.
+
+- Rotated crops and zooms:
+  [`add_crop()`](https://jbengler.github.io/tidymontage/reference/add_crop.md)
+  and
+  [`add_zoom()`](https://jbengler.github.io/tidymontage/reference/add_zoom.md)
+  take an `angle`, in degrees counterclockwise as Fiji measures lines,
+  or an `angle` column in `center` for an angle per image. Rotated
+  regions are shown upright and sampled with bilinear interpolation.
+  Zooms take the angle of the crop unless given one. Zoom boxes,
+  arrowheads and
+  [`preview_positions()`](https://jbengler.github.io/tidymontage/reference/preview_positions.md)
+  follow the rotation.
+  [`get_panels()`](https://jbengler.github.io/tidymontage/reference/get_panels.md)
+  has a new `angle` column.
+
+- Several zooms per image: call
+  [`add_zoom()`](https://jbengler.github.io/tidymontage/reference/add_zoom.md)
+  again for each. With two or more, zooms are numbered in the order they
+  were added: the number is shown in the top-left corner of each box and
+  each zoom panel, and the views are named `"zoom 1"`, `"zoom 2"`, … A
+  new `label` argument sets your own label or turns it off.
+  [`preview_positions()`](https://jbengler.github.io/tidymontage/reference/preview_positions.md)
+  outlines all zooms.
+
+- New
+  [`tidymontage_options()`](https://jbengler.github.io/tidymontage/reference/tidymontage_options.md)
+  sets session-wide defaults for the size box, its units and the gap,
+  like `tidyplots_options()`.
+
+- New
+  [`add_arrows()`](https://jbengler.github.io/tidymontage/reference/add_arrows.md)
+  marks locations with arrowheads. They belong to an image and are drawn
+  in all of its panels: each channel, merges, overlays, crops and zooms.
+
+- New [`lut()`](https://jbengler.github.io/tidymontage/reference/lut.md)
+  colours channels and overlays with a colormap such as magma or
+  viridis, in
+  [`adjust_colors()`](https://jbengler.github.io/tidymontage/reference/adjust_colors.md)
+  and `add_overlay(color = )`. In merges, such channels use their
+  original colour.
+  [`add_color_legend()`](https://jbengler.github.io/tidymontage/reference/add_color_legend.md)
+  shows them as colour bars labelled with the display range
+  (`ranges = TRUE`).
+
+- Initial CRAN submission.
