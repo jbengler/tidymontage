@@ -538,6 +538,25 @@ cells |>
 
 <img src="man/figures/README-zoom-numbered.png" alt="" width="547" />
 
+Crops and zooms can be rotated, for structures that run at an angle. The
+angle is the one Fiji reports for a line drawn along the structure, in
+degrees counterclockwise, and can differ between images. The panels show
+the rotated regions upright. Zooms take the angle of the crop, so their
+boxes sit square in it:
+
+``` r
+crops_rotated <- crops |>
+  mutate(angle = c(30, -20))
+
+cells |>
+  tidymontage(x = view, y = mutant, channel = "merge") |>
+  add_merge(Cy3, `Alexa Fluor 488`, DAPI) |>
+  add_crop(width = 60, center = crops_rotated) |>
+  add_zoom(width = 15, center = zooms)
+```
+
+<img src="man/figures/README-rotated.png" alt="" width="547" />
+
 ### Arrowheads
 
 `add_arrows()` points at locations with arrowheads. An arrowhead belongs
@@ -738,7 +757,7 @@ cat(format(montage), sep = "\n")
 #>   2. adjust_exposure(min = "p0.1", max = "p99.8", .by = channel)
 #>   3. add_merge(`Alexa Fluor 647`, `Alexa Fluor 555`, `Alexa Fluor 488`, `Hoechst 33258`, name = "merge")
 get_panels(montage)
-#> # A tibble: 5 x 15
+#> # A tibble: 5 x 16
 #>     col   row channel view   xmin  ymin  xmax  ymax merge overlay background px_xmin px_xmax px_ymin
 #>   <int> <int> <chr>   <chr> <dbl> <dbl> <dbl> <dbl> <lgl> <lgl>   <chr>        <dbl>   <dbl>   <dbl>
 #> 1     1     1 Alexa ~ full    0    4.69  27.2  31.9 FALSE FALSE   black            1    2024       1
@@ -746,7 +765,7 @@ get_panels(montage)
 #> 3     3     1 Alexa ~ full   56.4  4.69  83.6  31.9 FALSE FALSE   black            1    2024       1
 #> 4     4     1 Hoechs~ full   84.6  4.69 112.   31.9 FALSE FALSE   black            1    2024       1
 #> 5     5     1 merge   full  113.   4.69 140    31.9 TRUE  FALSE   black            1    2024       1
-#> # i 1 more variable: px_ymax <dbl>
+#> # i 2 more variables: px_ymax <dbl>, angle <dbl>
 ```
 
 Like plots in tidyplots, montages have a **fixed physical size**: by
@@ -783,12 +802,12 @@ cells |> tidymontage(x = channel) |> get_panels()
 cells |>
   tidymontage(x = mutant, channel = "DAPI") |>
   get_panels()
-#> # A tibble: 2 x 16
+#> # A tibble: 2 x 17
 #>     col   row channel view  mutant  xmin  ymin  xmax  ymax merge overlay background px_xmin px_xmax
 #>   <int> <int> <chr>   <chr> <chr>  <dbl> <dbl> <dbl> <dbl> <lgl> <lgl>   <chr>        <dbl>   <dbl>
 #> 1     1     1 DAPI    full  I56A     0    4.69  69.5  74.2 FALSE FALSE   black            1    1796
 #> 2     2     1 DAPI    full  L59A    70.5  4.69 140    74.2 FALSE FALSE   black            1    1796
-#> # i 2 more variables: px_ymin <dbl>, px_ymax <dbl>
+#> # i 3 more variables: px_ymin <dbl>, px_ymax <dbl>, angle <dbl>
 
 # unlinking display ranges across channels is possible, but flagged
 tidymontage(cells, x = mutant) |> adjust_exposure(.by = mutant)

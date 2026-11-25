@@ -70,7 +70,8 @@ format.tidymontage_step_add_arrows <- function(x, ...) {
 }
 
 # Arrow tips on the panels, in mm, with the panel each one is clipped to.
-# Tips outside the region a panel shows are left out.
+# Tips outside the region a panel shows are left out. In rotated regions the
+# tips move with the image, but arrowheads keep pointing up-left on the page.
 montage_arrows <- function(space, panels, images, arrows) {
   if (length(arrows) == 0) {
     return(NULL)
@@ -79,16 +80,15 @@ montage_arrows <- function(space, panels, images, arrows) {
   for (i in seq_len(nrow(panels))) {
     row <- space$data[panels$.row[i], , drop = FALSE]
     node <- vctrs::vec_data(images$img[panels$.sources[[i]][1]])[[1]]$node
-    sx <- (panels$xmax[i] - panels$xmin[i]) / (panels$.x1[i] - panels$.x0[i] + 1)
-    sy <- (panels$ymax[i] - panels$ymin[i]) / (panels$.y1[i] - panels$.y0[i] + 1)
     for (a in arrows) {
       at <- arrow_positions(a$at, row)
       if (nrow(at) == 0) next
       # 0-based pixel coordinates of the full image; pixel k spans [k, k + 1]
       px <- if (a$units == "rel") at$x * node$size_x else at$x
       py <- if (a$units == "rel") at$y * node$size_y else at$y
-      x <- panels$xmin[i] + (px - (panels$.x0[i] - 1)) * sx
-      y <- panels$ymin[i] + (py - (panels$.y0[i] - 1)) * sy
+      pt <- panel_point(panels, i, px, py)
+      x <- pt$x
+      y <- pt$y
       inside <- x >= panels$xmin[i] & x <= panels$xmax[i] & y >= panels$ymin[i] & y <= panels$ymax[i]
       if (!any(inside)) next
       out[[length(out) + 1]] <- data.frame(

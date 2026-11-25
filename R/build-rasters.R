@@ -63,3 +63,37 @@ compose_panel <- function(values, colors, background = "black") {
 blend_rgb <- function(layers) {
   Reduce(function(a, b) Map(`+`, a, b), layers)
 }
+
+# The pixels a panel shows: a block of the image, or for rotated regions the
+# image sampled on the rotated grid, with bilinear interpolation (as ImageJ
+# rotates). One output pixel per source pixel, so the magnification stays.
+panel_pixels <- function(m, panels, i) {
+  if (panels$.angle[i] == 0) {
+    return(m[panels$.y0[i]:panels$.y1[i], panels$.x0[i]:panels$.x1[i], drop = FALSE])
+  }
+  w <- panels$.x1[i] - panels$.x0[i] + 1
+  h <- panels$.y1[i] - panels$.y0[i] + 1
+  # pixel centers of the output, in the region's frame; rows vary fastest
+  u <- rep((seq_len(w) - 0.5) - w / 2, each = h)
+  v <- rep((seq_len(h) - 0.5) - h / 2, times = w)
+  p <- image_point(panels$.cx[i], panels$.cy[i], panels$.angle[i], u, v)
+  matrix(bilinear(m, p$x, p$y), h, w)
+}
+
+# Values of image m at 0-based image coordinates (pixel k spans [k, k + 1],
+# its value sits at k + 0.5). Edges are extended.
+bilinear <- function(m, x, y) {
+  nx <- ncol(m)
+  ny <- nrow(m)
+  fx <- x - 0.5
+  fy <- y - 0.5
+  x0 <- pmin(pmax(floor(fx), 0), nx - 1)
+  y0 <- pmin(pmax(floor(fy), 0), ny - 1)
+  tx <- pmin(pmax(fx - x0, 0), 1)
+  ty <- pmin(pmax(fy - y0, 0), 1)
+  x1 <- pmin(x0 + 1, nx - 1)
+  y1 <- pmin(y0 + 1, ny - 1)
+  at <- function(yy, xx) m[yy + 1 + xx * ny]
+  at(y0, x0) * (1 - tx) * (1 - ty) + at(y0, x1) * tx * (1 - ty) +
+    at(y1, x0) * (1 - tx) * ty + at(y1, x1) * tx * ty
+}

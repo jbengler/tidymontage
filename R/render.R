@@ -54,6 +54,14 @@ montage_grob <- function(b) {
       gp = grid::gpar(...), name = name
     )
   }
+  # four-cornered outlines (possibly rotated): columns x1-x4, y1-y4
+  quads <- function(name, d, ...) {
+    grid::polygonGrob(
+      x = n(as.vector(t(as.matrix(d[c("x1", "x2", "x3", "x4")])))),
+      y = n(H - as.vector(t(as.matrix(d[c("y1", "y2", "y3", "y4")])))),
+      id = rep(seq_len(nrow(d)), each = 4), gp = grid::gpar(...), name = name
+    )
+  }
   # text grobs take one angle and justification each
   texts <- function(name, d, label, size, col, lineheight = 0.9) {
     for (k in seq_len(nrow(d))) {
@@ -125,8 +133,8 @@ montage_grob <- function(b) {
     texts("preview-ticks", tk, tk$label, 5, "grey30")
     if (!is.null(pv$rects)) {
       r <- pv$rects
-      add(rect("preview-regions", r$xmin, r$xmax, r$ymin, r$ymax, col = r$color, fill = NA, lwd = lwd(0.3)))
-      d <- data.frame(x = r$xmin, y = r$ymin - 0.3, hjust = 0, vjust = 0)
+      add(quads("preview-regions", r, col = r$color, fill = NA, lwd = lwd(0.3)))
+      d <- data.frame(x = r$x1, y = r$y1 - 0.3, hjust = 0, vjust = 0)
       for (k in seq_len(nrow(r))) {
         add(text(paste0("preview-region-label-", k), r$label[k], d$x[k], d$y[k], hjust = 0, vjust = 0,
                  fontsize = 5, col = r$color[k]))
@@ -137,8 +145,8 @@ montage_grob <- function(b) {
     bx <- b$boxes
     # numbers first, so the box line runs over the edge of their squares
     bl <- bx[!is.na(bx$label %||% NA), , drop = FALSE]
-    for (k in seq_len(nrow(bl))) tag(paste0("zoom-box-label-", k), bl$label[k], bl$xmin[k], bl$ymin[k])
-    add(rect("zoom-boxes", bx$xmin, bx$xmax, bx$ymin, bx$ymax, col = bx$color %||% "white", fill = NA, lwd = lwd(0.25)))
+    for (k in seq_len(nrow(bl))) tag(paste0("zoom-box-label-", k), bl$label[k], bl$x1[k], bl$y1[k])
+    add(quads("zoom-boxes", bx, col = bx$color, fill = NA, lwd = lwd(0.25)))
   }
   if (!is.null(b$zoom_labels)) {
     zl <- b$zoom_labels
@@ -299,6 +307,10 @@ open_device <- function(filename, width, height, dpi, ..., call = rlang::caller_
 #' figure) and the region of the source image they show. No pixels are read,
 #' so this is a quick way to check a layout.
 #'
+#' The region is given in pixels (`px_xmin` ... `px_ymax`, 1-based) and as
+#' `angle`. For rotated regions (`angle` not 0), the pixel columns describe
+#' the region before it is rotated about its center.
+#'
 #' @param montage A [tidymontage()] object.
 #' @returns A tibble with one row per panel.
 #' @export
@@ -314,6 +326,7 @@ get_panels <- function(montage) {
   p$px_xmax <- p$.x1
   p$px_ymin <- p$.y0
   p$px_ymax <- p$.y1
+  p$angle <- p$.angle
   p[, !startsWith(names(p), ".")]
 }
 

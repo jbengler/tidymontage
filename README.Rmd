@@ -433,6 +433,23 @@ cells |>
   add_zoom(width = 15, center = zooms_2)
 ```
 
+Crops and zooms can be rotated, for structures that run at an angle. The
+angle is the one Fiji reports for a line drawn along the structure, in
+degrees counterclockwise, and can differ between images. The panels show the
+rotated regions upright. Zooms take the angle of the crop, so their boxes sit
+square in it:
+
+```{r rotated}
+crops_rotated <- crops |>
+  mutate(angle = c(30, -20))
+
+cells |>
+  tidymontage(x = view, y = mutant, channel = "merge") |>
+  add_merge(Cy3, `Alexa Fluor 488`, DAPI) |>
+  add_crop(width = 60, center = crops_rotated) |>
+  add_zoom(width = 15, center = zooms)
+```
+
 ### Arrowheads
 
 `add_arrows()` points at locations with arrowheads. An arrowhead belongs to an

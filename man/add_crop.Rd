@@ -11,7 +11,8 @@ add_crop(
   center = c(0.5, 0.5),
   units = c("um", "px"),
   center_units = c("rel", "px"),
-  name = "crop"
+  name = "crop",
+  angle = NULL
 )
 }
 \arguments{
@@ -22,7 +23,9 @@ keeps the magnification equal even if images have different pixel sizes.}
 
 \item{center}{Position of the region's center: a numeric vector \code{c(x, y)}
 used for all images, or a data frame with columns \code{x}, \code{y} and one or more
-columns of the images tibble to match on, e.g. \code{condition} or \code{filepath}.}
+columns of the images tibble to match on, e.g. \code{condition} or \code{filepath}.
+The data frame can also have an \code{angle} column, for a different angle per
+image.}
 
 \item{units}{Units of \code{width} and \code{height}: \code{"um"} (micrometres, needs a
 known pixel size) or \code{"px"} (pixels).}
@@ -30,6 +33,10 @@ known pixel size) or \code{"px"} (pixels).}
 \item{center_units}{Units of \code{center}: \code{"rel"} (relative, 0-1) or \code{"px"}.}
 
 \item{name}{Name of the view in the layout.}
+
+\item{angle}{Rotation of the region in degrees, counterclockwise, as Fiji
+measures the angle of a line. \code{NULL} (the default) means no rotation,
+unless \code{center} has an \code{angle} column.}
 }
 \value{
 The montage with the crop step added.
@@ -51,10 +58,22 @@ doesn't change brightness.
 
 A montage has one crop: calling \code{add_crop()} again replaces the earlier
 crop. Use \code{\link[=add_zoom]{add_zoom()}} for further regions.
+
+With \code{angle}, the region is rotated, for structures that run at an angle,
+such as a neurite. The angle is the one Fiji reports for a line drawn along
+the structure (\emph{Analyze > Measure}): in degrees, counterclockwise. The
+region's width runs along that line, and the panel shows it upright, so the
+structure lies horizontal. Rotated regions are sampled with bilinear
+interpolation, at the original pixel size. Unlike upright regions, they are
+not moved inside the image: all their corners must lie within it.
 }
 \examples{
 \dontrun{
 centers <- tibble::tibble(condition = c("ctrl", "ko"), x = c(0.4, 0.6), y = c(0.5, 0.3))
+montage |> add_crop(width = 40, center = centers)
+
+# rotated, with an angle per image
+centers$angle <- c(30, -15)
 montage |> add_crop(width = 40, center = centers)
 }
 }

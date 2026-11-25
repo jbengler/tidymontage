@@ -1,5 +1,12 @@
 # tidymontage (development version)
 
+* Rotated crops and zooms: `add_crop()` and `add_zoom()` take an `angle`,
+  in degrees counterclockwise as Fiji measures lines, or an `angle` column in
+  `center` for an angle per image. Rotated regions are shown upright and
+  sampled with bilinear interpolation. Zooms take the angle of the crop
+  unless given one. Zoom boxes, arrowheads and `preview_positions()` follow
+  the rotation. `get_panels()` has a new `angle` column.
+
 * Several zooms per image: call `add_zoom()` again for each. With two or
   more, zooms are numbered in the order they were added: the number is shown
   in the top-left corner of each box and each zoom panel, and the views are

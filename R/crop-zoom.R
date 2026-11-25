@@ -16,30 +16,48 @@
 #' A montage has one crop: calling `add_crop()` again replaces the earlier
 #' crop. Use [add_zoom()] for further regions.
 #'
+#' With `angle`, the region is rotated, for structures that run at an angle,
+#' such as a neurite. The angle is the one Fiji reports for a line drawn along
+#' the structure (*Analyze > Measure*): in degrees, counterclockwise. The
+#' region's width runs along that line, and the panel shows it upright, so the
+#' structure lies horizontal. Rotated regions are sampled with bilinear
+#' interpolation, at the original pixel size. Unlike upright regions, they are
+#' not moved inside the image: all their corners must lie within it.
+#'
 #' @param montage A [tidymontage()] object.
 #' @param width,height Size of the region. In micrometres by default, which
 #'   keeps the magnification equal even if images have different pixel sizes.
 #' @param center Position of the region's center: a numeric vector `c(x, y)`
 #'   used for all images, or a data frame with columns `x`, `y` and one or more
 #'   columns of the images tibble to match on, e.g. `condition` or `filepath`.
+#'   The data frame can also have an `angle` column, for a different angle per
+#'   image.
 #' @param units Units of `width` and `height`: `"um"` (micrometres, needs a
 #'   known pixel size) or `"px"` (pixels).
 #' @param center_units Units of `center`: `"rel"` (relative, 0-1) or `"px"`.
 #' @param name Name of the view in the layout.
+#' @param angle Rotation of the region in degrees, counterclockwise, as Fiji
+#'   measures the angle of a line. `NULL` (the default) means no rotation,
+#'   unless `center` has an `angle` column.
 #'
 #' @returns The montage with the crop step added.
 #' @examples
 #' \dontrun{
 #' centers <- tibble::tibble(condition = c("ctrl", "ko"), x = c(0.4, 0.6), y = c(0.5, 0.3))
 #' montage |> add_crop(width = 40, center = centers)
+#'
+#' # rotated, with an angle per image
+#' centers$angle <- c(30, -15)
+#' montage |> add_crop(width = 40, center = centers)
 #' }
 #' @export
 add_crop <- function(montage, width, height = width, center = c(0.5, 0.5),
-                        units = c("um", "px"), center_units = c("rel", "px"), name = "crop") {
+                        units = c("um", "px"), center_units = c("rel", "px"), name = "crop",
+                        angle = NULL) {
   check_tidymontage(montage)
   view <- new_view_spec(
     width, height, center, rlang::arg_match(units), rlang::arg_match(center_units), name, montage,
-    replaces = "add_crop"
+    angle = angle, replaces = "add_crop"
   )
   add_step(montage, new_step("add_crop", view))
 }
@@ -65,6 +83,9 @@ add_crop <- function(montage, width, height = width, center = c(0.5, 0.5),
 #'   `"zoom 1"`, `"zoom 2"`, ... if the montage has several zooms.
 #' @param box Where to draw the box that marks the region on the main panels:
 #'   on `"all"` panels, only on `"merge"` panels, or `"none"`.
+#' @param angle Rotation of the region in degrees, counterclockwise, see
+#'   [add_crop()]. `NULL` (the default) takes the angle of the crop, so the
+#'   zoom box sits square in a rotated crop; `0` keeps the zoom upright.
 #' @param label Label shown in the box and in the zoom panels. By default the
 #'   number of the zoom if the montage has several, otherwise none. A string
 #'   sets your own label; `NA` shows none.
@@ -85,10 +106,11 @@ add_crop <- function(montage, width, height = width, center = c(0.5, 0.5),
 #' @export
 add_zoom <- function(montage, width, height = width, center = c(0.5, 0.5),
                      units = c("um", "px"), center_units = c("rel", "px"), name = NULL,
-                     box = c("all", "merge", "none"), label = NULL) {
+                     box = c("all", "merge", "none"), label = NULL, angle = NULL) {
   check_tidymontage(montage)
   view <- new_view_spec(
-    width, height, center, rlang::arg_match(units), rlang::arg_match(center_units), name, montage
+    width, height, center, rlang::arg_match(units), rlang::arg_match(center_units), name, montage,
+    angle = angle
   )
   view$box <- rlang::arg_match(box)
   if (!is.null(label) && !(length(label) == 1 && (is.na(label) || is.character(label)))) {
@@ -99,7 +121,7 @@ add_zoom <- function(montage, width, height = width, center = c(0.5, 0.5),
 }
 
 new_view_spec <- function(width, height, center, units, center_units, name, montage,
-                          replaces = NULL, call = rlang::caller_env()) {
+                          angle = NULL, replaces = NULL, call = rlang::caller_env()) {
   for (arg in c("width", "height")) {
     v <- get(arg)
     if (!is.numeric(v) || length(v) != 1 || is.na(v) || v <= 0) {
@@ -118,17 +140,26 @@ new_view_spec <- function(width, height, center, units, center_units, name, mont
       cli::cli_abort("The view name {.val {name}} is already used.", call = call)
     }
   }
-  check_center(center, center_units, montage$images, call)
+  check_center(center, center_units, montage$images, call, angle = TRUE)
+  if (!is.null(angle)) {
+    if (!is.numeric(angle) || length(angle) != 1 || !is.finite(angle)) {
+      cli::cli_abort("{.arg angle} must be a single number (degrees).", call = call)
+    }
+    if (is.data.frame(center) && "angle" %in% names(center)) {
+      cli::cli_abort("Give the angle either as {.arg angle} or as a column of {.arg center}, not both.", call = call)
+    }
+  }
   list(
     name = name, width = width, height = height, units = units,
-    center = center, center_units = center_units
+    center = center, center_units = center_units, angle = angle
   )
 }
 
 # Positions: c(x, y), or a data frame with columns x, y and columns of the
 # images tibble to match on. Crops and zooms need one position per image;
 # arrows (`several = TRUE`) can have any number.
-check_center <- function(center, center_units, images, call, arg = "center", several = FALSE) {
+check_center <- function(center, center_units, images, call, arg = "center", several = FALSE,
+                         angle = FALSE) {
   if (is.numeric(center)) {
     if (length(center) != 2 || anyNA(center)) {
       cli::cli_abort("{.arg {arg}} must be {.code c(x, y)} or a data frame.", call = call)
@@ -144,7 +175,10 @@ check_center <- function(center, center_units, images, call, arg = "center", sev
   if (!all(c("x", "y") %in% names(center)) || !is.numeric(center$x) || !is.numeric(center$y)) {
     cli::cli_abort("A {.arg {arg}} data frame needs numeric columns {.field x} and {.field y}.", call = call)
   }
-  keys <- setdiff(names(center), c("x", "y"))
+  keys <- setdiff(names(center), c("x", "y", if (angle) "angle"))
+  if (angle && "angle" %in% names(center) && !is.numeric(center$angle)) {
+    cli::cli_abort("The {.field angle} column of {.arg {arg}} must be numeric (degrees).", call = call)
+  }
   unknown <- setdiff(keys, names(images))
   if (length(unknown) > 0) {
     cli::cli_abort(
@@ -169,7 +203,11 @@ format_view_step <- function(x, verb) {
   center <- if (is.numeric(p$center)) {
     paste0("c(", paste(p$center, collapse = ", "), ")")
   } else {
-    paste0("<", nrow(p$center), " centers by ", paste(setdiff(names(p$center), c("x", "y")), collapse = ", "), ">")
+    keys <- setdiff(names(p$center), c("x", "y", "angle"))
+    paste0(
+      "<", nrow(p$center), " centers", if ("angle" %in% names(p$center)) " and angles",
+      " by ", paste(keys, collapse = ", "), ">"
+    )
   }
   args <- c(
     paste0("width = ", p$width),
@@ -178,6 +216,7 @@ format_view_step <- function(x, verb) {
     if (p$units != "um") paste0("units = \"", p$units, "\""),
     if (p$center_units != "rel") paste0("center_units = \"", p$center_units, "\""),
     if (!is.null(p$name)) paste0("name = \"", p$name, "\""),
+    if (!is.null(p$angle)) paste0("angle = ", p$angle),
     if (!is.null(p$box) && p$box != "all") paste0("box = \"", p$box, "\""),
     if (!is.null(p$label)) paste0("label = ", if (is.na(p$label)) "NA" else paste0("\"", p$label, "\""))
   )

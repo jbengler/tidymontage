@@ -176,7 +176,8 @@ preview_positions <- function(montage, ...) {
       preview <- add_step(preview, step)
     }
   }
-  add_step(preview, new_step("preview_positions", list(crop = spec$crop, zooms = unname(spec$zooms))))
+  views <- montage_views(spec)
+  add_step(preview, new_step("preview_positions", list(crop = spec$crop, zooms = unname(views[-1]))))
 }
 
 # Grid lines, axis labels and region outlines of a positions preview (mm).
@@ -205,11 +206,11 @@ preview_positions_overlay <- function(panels, data, images, pp, call) {
       if (is.null(view)) next
       r <- tryCatch(view_region(view, row, node, call), error = function(e) NULL)
       if (is.null(r)) next
-      sx <- w / node$size_x
-      sy <- h / node$size_y
+      k <- panel_point(p, 1, region_corners(r)$x, region_corners(r)$y)
       rects[[length(rects) + 1]] <- data.frame(
-        xmin = p$xmin + (r[1] - 1) * sx, xmax = p$xmin + r[2] * sx,
-        ymin = p$ymin + (r[3] - 1) * sy, ymax = p$ymin + r[4] * sy,
+        x1 = k$x[1], x2 = k$x[2], x3 = k$x[3], x4 = k$x[4],
+        y1 = k$y[1], y2 = k$y[2], y3 = k$y[3], y4 = k$y[4],
+        xmin = min(k$x), xmax = max(k$x), ymin = min(k$y), ymax = max(k$y),
         label = view$name, color = ink
       )
     }

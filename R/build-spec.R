@@ -88,6 +88,8 @@ montage_views <- function(spec) {
   main$main <- TRUE
   zooms <- lapply(spec$zooms, function(z) {
     z$main <- FALSE
+    # a zoom without an angle takes the angle of the crop it lies in
+    z$parent <- main
     z
   })
   views <- c(list(main), unname(zooms))

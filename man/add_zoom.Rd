@@ -13,7 +13,8 @@ add_zoom(
   center_units = c("rel", "px"),
   name = NULL,
   box = c("all", "merge", "none"),
-  label = NULL
+  label = NULL,
+  angle = NULL
 )
 }
 \arguments{
@@ -24,7 +25,9 @@ keeps the magnification equal even if images have different pixel sizes.}
 
 \item{center}{Position of the region's center: a numeric vector \code{c(x, y)}
 used for all images, or a data frame with columns \code{x}, \code{y} and one or more
-columns of the images tibble to match on, e.g. \code{condition} or \code{filepath}.}
+columns of the images tibble to match on, e.g. \code{condition} or \code{filepath}.
+The data frame can also have an \code{angle} column, for a different angle per
+image.}
 
 \item{units}{Units of \code{width} and \code{height}: \code{"um"} (micrometres, needs a
 known pixel size) or \code{"px"} (pixels).}
@@ -40,6 +43,10 @@ on \code{"all"} panels, only on \code{"merge"} panels, or \code{"none"}.}
 \item{label}{Label shown in the box and in the zoom panels. By default the
 number of the zoom if the montage has several, otherwise none. A string
 sets your own label; \code{NA} shows none.}
+
+\item{angle}{Rotation of the region in degrees, counterclockwise, see
+\code{\link[=add_crop]{add_crop()}}. \code{NULL} (the default) takes the angle of the crop, so the
+zoom box sits square in a rotated crop; \code{0} keeps the zoom upright.}
 }
 \value{
 The montage with the zoom step added.

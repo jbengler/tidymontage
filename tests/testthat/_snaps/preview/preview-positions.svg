@@ -80,8 +80,8 @@
 <text x='484.30' y='300.82' style='font-size: 5.00px; fill: #4D4D4D; font-family: sans;' textLength='6.95px' lengthAdjust='spacingAndGlyphs'>0.6</text>
 <text x='484.30' y='319.64' style='font-size: 5.00px; fill: #4D4D4D; font-family: sans;' textLength='6.95px' lengthAdjust='spacingAndGlyphs'>0.8</text>
 <text x='484.30' y='338.47' style='font-size: 5.00px; fill: #4D4D4D; font-family: sans;' textLength='2.78px' lengthAdjust='spacingAndGlyphs'>1</text>
-<rect x='251.01' y='266.16' width='70.58' height='58.82' style='stroke-width: 0.64; stroke: #FFFFFF;' />
-<rect x='388.49' y='266.16' width='70.58' height='58.82' style='stroke-width: 0.64; stroke: #FFFFFF;' />
+<polygon points='251.01,266.16 321.59,266.16 321.59,324.98 251.01,324.98 ' style='stroke-width: 0.64; stroke: #FFFFFF; fill: none;' />
+<polygon points='388.49,266.16 459.07,266.16 459.07,324.98 388.49,324.98 ' style='stroke-width: 0.64; stroke: #FFFFFF; fill: none;' />
 <text x='251.01' y='265.31' style='font-size: 5.00px; fill: #FFFFFF; font-family: sans;' textLength='9.73px' lengthAdjust='spacingAndGlyphs'>crop</text>
 <text x='388.49' y='265.31' style='font-size: 5.00px; fill: #FFFFFF; font-family: sans;' textLength='9.73px' lengthAdjust='spacingAndGlyphs'>crop</text>
 <text x='286.30' y='238.39' text-anchor='middle' style='font-size: 7.00px; font-family: sans;' textLength='9.33px' lengthAdjust='spacingAndGlyphs'>ctrl</text>

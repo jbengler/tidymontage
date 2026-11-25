@@ -30,12 +30,12 @@
 <image width='61.65' height='61.65' x='303.58' y='334.96' preserveAspectRatio='none' image-rendering='pixelated' xlink:href='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEIAAABCCAYAAADjVADoAAAA00lEQVR4nO3aMYrDMBBAUcmkTu7f5Yo5wW7z2VpaMNjhvXoQ5qNiEJ7vz/tnLJpjro5uzR7jOOfcuX7u+uSXEyJCRIgIESEiRISIEBEij+fxXB6+wto85znf4EZEiAgRISJEhIgQESJCRIjcbsXeeZne+17GGEL8ESJCRIgIESEiRISIENlase+2Nlux/0GICBEhIkSEiBARIkJEiDxex2t5+Ao/dJz1ku5GRIgIESEiRISIEBEiQkSI7P0ocoG12Yp9MiEiRISIEBEiQkSICBEh8gsGfgSwjqd1jQAAAABJRU5ErkJggg=='/>
 <image width='61.65' height='61.65' x='368.07' y='334.96' preserveAspectRatio='none' image-rendering='pixelated' xlink:href='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAD8AAAA/CAYAAABXXxDfAAAAjUlEQVRoge3YsRHAIAzFUOxQkx3Yf6XMkizxKXLSG8CHcOfaz35HWFenR44aFZ+Zf+WPGE9lPJXxVMZTGU9lPJXxVMZTGU+Fjp/rWvGhfeBPPWCGGU9lPJXxVMZTGU9lPJXxVMZTGU+Fjp933/GhZ46N+T2hN288lfFUxlMZT2U8lfFUxlMZT2U8FTr+Ax1+AvQVXQAjAAAAAElFTkSuQmCC'/>
 <image width='61.65' height='61.65' x='432.56' y='334.96' preserveAspectRatio='none' image-rendering='pixelated' xlink:href='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAD8AAAA/CAYAAABXXxDfAAAAjklEQVRoge3YsQ3AMAzEQMlI7f3X8GwZIFniVRjkDfAAoU593vNVWFenJ6s7v7niixcxnsp4KuOpjKcynsp4KuOpjKcyngod/+y146MTD8zV+TuhL288lfFUxlMZT2U8lfFUxlMZT2U8FTp+5IE58WwceYrGFy9iPJXxVMZTGU9lPJXxVMZTGU9lPBU6/gd2HwQlt0ctEQAAAABJRU5ErkJggg=='/>
-<rect x='259.64' y='216.26' width='30.83' height='30.83' style='stroke-width: 0.53; stroke: #FFFFFF;' />
-<rect x='324.13' y='216.26' width='30.83' height='30.83' style='stroke-width: 0.53; stroke: #FFFFFF;' />
-<rect x='259.64' y='280.75' width='30.83' height='30.83' style='stroke-width: 0.53; stroke: #FFFFFF;' />
-<rect x='324.13' y='280.75' width='30.83' height='30.83' style='stroke-width: 0.53; stroke: #FFFFFF;' />
-<rect x='259.64' y='345.24' width='30.83' height='30.83' style='stroke-width: 0.53; stroke: #FFFFFF;' />
-<rect x='324.13' y='345.24' width='30.83' height='30.83' style='stroke-width: 0.53; stroke: #FFFFFF;' />
+<polygon points='259.64,216.26 290.47,216.26 290.47,247.09 259.64,247.09 ' style='stroke-width: 0.53; stroke: #FFFFFF; fill: none;' />
+<polygon points='324.13,216.26 354.96,216.26 354.96,247.09 324.13,247.09 ' style='stroke-width: 0.53; stroke: #FFFFFF; fill: none;' />
+<polygon points='259.64,280.75 290.47,280.75 290.47,311.58 259.64,311.58 ' style='stroke-width: 0.53; stroke: #FFFFFF; fill: none;' />
+<polygon points='324.13,280.75 354.96,280.75 354.96,311.58 324.13,311.58 ' style='stroke-width: 0.53; stroke: #FFFFFF; fill: none;' />
+<polygon points='259.64,345.24 290.47,345.24 290.47,376.06 259.64,376.06 ' style='stroke-width: 0.53; stroke: #FFFFFF; fill: none;' />
+<polygon points='324.13,345.24 354.96,345.24 354.96,376.06 324.13,376.06 ' style='stroke-width: 0.53; stroke: #FFFFFF; fill: none;' />
 <rect x='350.71' y='390.66' width='10.28' height='1.70' style='stroke-width: 0.32; fill: #FFFFFF;' />
 <rect x='479.68' y='390.66' width='10.28' height='1.70' style='stroke-width: 0.32; fill: #FFFFFF;' />
 <text x='340.18' y='388.10' style='font-size: 7.00px; font-family: sans;' textLength='9.73px' lengthAdjust='spacingAndGlyphs'>0.1</text>

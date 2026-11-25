@@ -26,7 +26,7 @@ montage_build <- function(montage, dpi = 150, call = rlang::caller_env()) {
     src <- panels$.sources[[i]]
     values <- lapply(src, function(s) {
       k <- match(s, used)
-      m <- pixels[[k]][panels$.y0[i]:panels$.y1[i], panels$.x0[i]:panels$.x1[i], drop = FALSE]
+      m <- panel_pixels(pixels[[k]], panels, i)
       f <- max(1L, floor(ncol(m) / target_px))
       scale_intensity(bin_mean(m, f), sources$display_min[k], sources$display_max[k])
     })

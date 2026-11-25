@@ -18,3 +18,8 @@ position, rectangle in mm (measured from the top-left corner of the
 figure) and the region of the source image they show. No pixels are read,
 so this is a quick way to check a layout.
 }
+\details{
+The region is given in pixels (\code{px_xmin} ... \code{px_ymax}, 1-based) and as
+\code{angle}. For rotated regions (\code{angle} not 0), the pixel columns describe
+the region before it is rotated about its center.
+}
