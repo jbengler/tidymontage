@@ -701,6 +701,24 @@ cells |>
 
 <img src="man/figures/README-unnamed-chunk-8.png" alt="" width="547" />
 
+Side panels can have another shape than the hero. With `stack = TRUE`,
+they are stacked: below the hero, each strip is as wide as the hero, for
+example a flat zoom of each channel under a big merge:
+
+``` r
+cells |>
+  tidymontage(x = mutant, layout = layout_hero(position = "bottom", stack = TRUE)) |>
+  add_merge(Cy3, `Alexa Fluor 488`, DAPI) |>
+  add_crop(width = 60, center = crops) |>
+  add_zoom(width = 15, height = 4, center = zooms) |> 
+  add_scale_bar() |> 
+  adjust_size(width = 160) |> 
+  adjust_colors(DAPI = "#F1CD36") |> 
+  add_color_legend(position = "bottom")
+```
+
+<img src="man/figures/README-hero-strips.png" alt="" width="601" />
+
 ### Colour legend
 
 `add_color_legend()` explains the colours, like a ggplot2 legend: a

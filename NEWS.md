@@ -1,5 +1,10 @@
 # tidymontage (development version)
 
+* `layout_hero(stack = TRUE)` stacks the side panels so that each is as long
+  as the hero's edge: strips below the hero as wide as the hero, or beside it
+  as high as the hero. Side panels can have another shape than the hero, for
+  example a flat zoom of each channel under a big merge.
+
 * Rotated crops and zooms: `add_crop()` and `add_zoom()` take an `angle`,
   in degrees counterclockwise as Fiji measures lines, or an `angle` column in
   `center` for an angle per image. Rotated regions are shown upright and

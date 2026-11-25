@@ -34,7 +34,7 @@ montage_geometry <- function(space, size = default_size(), gap = 1,
   if (identical(space$type, "hero")) {
     a_hero <- check_aspect(panels$.aspect[panels$.role == "hero"], "hero panels")
     a_side <- check_aspect(panels$.aspect[panels$.role == "side"], "side panels")
-    shape <- hero_shape(a_hero, a_side, space$n_side, gap, space$position)
+    shape <- hero_shape(a_hero, a_side, space$n_side, gap, space$position, isTRUE(space$stack))
     cell_gap <- 3 * gap
   } else {
     a <- check_aspect(panels$.aspect, "panels")
@@ -66,34 +66,43 @@ montage_geometry <- function(space, size = default_size(), gap = 1,
   lab_w <- 0
   lab_h <- 0
   wrapped <- NULL
+  lab_at <- hero_label_side(space)
   if (identical(space$type, "hero") && isTRUE(space$labels)) {
     text_size <- headers$size %||% 7
     labs <- unique(panels$.label[panels$.role == "side"])
     line_h <- text_size * 0.3528 * 1.25
     # below the panels: as wide as a panel; beside them (rotated): as long as
     # a panel is high
-    room <- if (space$position == "bottom") s_free else s_free * shape$a_side
+    room <- if (lab_at == "bottom") s_free else s_free * shape$a_side
     # labels may reach into the gaps between side panels (half a gap each side)
     wrapped <- wrap_labels(labs, room + gap, text_size, call)
     n_lines <- max(lengths(strsplit(wrapped, "\n", fixed = TRUE)))
-    if (space$position == "bottom") {
+    if (lab_at == "bottom") {
       lab_h <- 0.8 + n_lines * line_h
     } else {
       lab_w <- 0.8 + n_lines * line_h
     }
     names(wrapped) <- labs
   }
-  cell_w <- shape$cw * s_free + shape$dw + lab_w
-  cell_h <- shape$ch * s_free + shape$dh + lab_h
-  width <- left + n_col * cell_w + (n_col - 1) * cell_gap + extra$right
-  height <- top + n_row * cell_h + (n_row - 1) * cell_gap + extra$bottom
+  # Stacked strips line up across blocks, so their labels are shared: once on
+  # the left of the first column (strips below the hero) or below the last
+  # row (strips beside it). Otherwise each block has its own labels.
+  shared <- isTRUE(space$stack)
+  cell_lab_w <- if (shared) 0 else lab_w
+  cell_lab_h <- if (shared) 0 else lab_h
+  pre_w <- if (shared) lab_w else 0
+  post_h <- if (shared) lab_h else 0
+  cell_w <- shape$cw * s_free + shape$dw + cell_lab_w
+  cell_h <- shape$ch * s_free + shape$dh + cell_lab_h
+  width <- left + pre_w + n_col * cell_w + (n_col - 1) * cell_gap + extra$right
+  height <- top + n_row * cell_h + (n_row - 1) * cell_gap + post_h + extra$bottom
 
-  ox <- left + (panels$col - 1) * (cell_w + cell_gap)
+  ox <- left + pre_w + (panels$col - 1) * (cell_w + cell_gap)
   oy <- top + (panels$row - 1) * (cell_h + cell_gap)
   if (identical(space$type, "hero")) {
-    r <- hero_rects(shape, s_free, gap, space$n_side, space$position, panels$.role, panels$.k)
+    r <- hero_rects(shape, s_free, gap, space$n_side, space$position, panels$.role, panels$.k, isTRUE(space$stack))
     # labels on the left come first
-    if (space$position == "left") ox <- ox + lab_w
+    if (lab_at == "left" && !shared) ox <- ox + lab_w
     panels$xmin <- ox + r$x
     panels$ymin <- oy + r$y
     panels$xmax <- panels$xmin + r$w
@@ -108,7 +117,10 @@ montage_geometry <- function(space, size = default_size(), gap = 1,
   side_labels <- NULL
   if (!is.null(wrapped)) {
     side <- panels[panels$.role == "side", , drop = FALSE]
-    pos <- space$position
+    if (shared) {
+      side <- side[if (lab_at == "left") side$col == 1 else side$row == n_row, , drop = FALSE]
+    }
+    pos <- lab_at
     # beside the panels, labels are rotated like ggplot2 facet strips: reading
     # top to bottom on the right, bottom to top on the left. All labels start
     # at the same distance from their panel; extra lines grow outwards.
@@ -130,13 +142,13 @@ montage_geometry <- function(space, size = default_size(), gap = 1,
   }
 
   # headers span the panels, not the label space
-  col_from <- left + (seq_len(n_col) - 1) * (cell_w + cell_gap) +
-    (if (identical(space$position, "left")) lab_w else 0)
+  col_from <- left + pre_w + (seq_len(n_col) - 1) * (cell_w + cell_gap) +
+    (if (identical(lab_at, "left") && !shared) lab_w else 0)
   row_from <- top + (seq_len(n_row) - 1) * (cell_h + cell_gap)
   labels <- NULL
   lines <- NULL
   if (!is.null(col_grid)) {
-    st <- header_strips(col_grid, col_from, col_from + cell_w - lab_w)
+    st <- header_strips(col_grid, col_from, col_from + cell_w - cell_lab_w)
     labels <- rbind(labels, data.frame(
       label = st$label, x = (st$from + st$to) / 2, y = extra$top + (st$level - 0.5) * strip, angle = 0
     ))
@@ -147,7 +159,7 @@ montage_geometry <- function(space, size = default_size(), gap = 1,
     ))
   }
   if (!is.null(row_grid)) {
-    st <- header_strips(row_grid, row_from, row_from + cell_h - lab_h)
+    st <- header_strips(row_grid, row_from, row_from + cell_h - cell_lab_h)
     labels <- rbind(labels, data.frame(
       label = st$label, x = left0 + (st$level - 0.5) * strip, y = (st$from + st$to) / 2, angle = 90
     ))
@@ -197,8 +209,15 @@ wrap_labels <- function(labels, width, size, call = rlang::caller_env()) {
 
 # Size of a hero block as a function of the side panel width s: the hero's
 # edge equals n side panels plus their gaps.
-hero_shape <- function(a_hero, a_side, n, gap, position) {
-  if (position == "bottom") {
+hero_shape <- function(a_hero, a_side, n, gap, position, stack = FALSE) {
+  # s is the width of a side panel
+  if (stack && position == "bottom") {
+    # side panels as wide as the hero, one under the other
+    list(cw = 1, dw = 0, ch = a_hero + n * a_side, dh = n * gap, a_hero = a_hero, a_side = a_side)
+  } else if (stack) {
+    # side panels as high as the hero, side by side
+    list(cw = a_side / a_hero + n, dw = n * gap, ch = a_side, dh = 0, a_hero = a_hero, a_side = a_side)
+  } else if (position == "bottom") {
     # hero width = n * s + (n - 1) * gap
     list(cw = n, dw = (n - 1) * gap, ch = a_hero * n + a_side, dh = a_hero * (n - 1) * gap + gap,
          a_hero = a_hero, a_side = a_side)
@@ -209,11 +228,36 @@ hero_shape <- function(a_hero, a_side, n, gap, position) {
   }
 }
 
-# Offsets and sizes of hero and side panels within their block.
-hero_rects <- function(shape, s, gap, n, position, role, k) {
+# Where the labels of hero side panels go: below them, or beside them on the
+# left or right. Stacked strips below the hero are labelled on the left, like
+# rows; stacked strips beside it are labelled below, like columns.
+hero_label_side <- function(space) {
+  if (!identical(space$type, "hero")) {
+    return(NA_character_)
+  }
+  if (isTRUE(space$stack)) {
+    if (space$position == "bottom") "left" else "bottom"
+  } else {
+    space$position
+  }
+}
+
+hero_rects <- function(shape, s, gap, n, position, role, k, stack = FALSE) {
   side_w <- s
   side_h <- s * shape$a_side
-  if (position == "bottom") {
+  if (stack && position == "bottom") {
+    hero_w <- s
+    hero_h <- s * shape$a_hero
+    side_x <- rep(0, length(k))
+    side_y <- hero_h + gap + (k - 1) * (side_h + gap)
+    hero_x <- 0
+  } else if (stack) {
+    hero_h <- side_h
+    hero_w <- hero_h / shape$a_hero
+    side_y <- rep(0, length(k))
+    side_x <- if (position == "right") hero_w + gap + (k - 1) * (side_w + gap) else (k - 1) * (side_w + gap)
+    hero_x <- if (position == "right") 0 else n * (side_w + gap)
+  } else if (position == "bottom") {
     hero_w <- n * s + (n - 1) * gap
     hero_h <- hero_w * shape$a_hero
     side_x <- (k - 1) * (side_w + gap)

@@ -160,3 +160,85 @@ test_that("hero montages render consistently", {
   m <- hero_montage(local_montage_images()) |> adjust_exposure(min = 0, max = "p100") |> add_scale_bar()
   vdiffr::expect_doppelganger("hero layout", drawing(m))
 })
+
+strip_montage <- function(images, ...) {
+  tidymontage(images, x = condition, layout = layout_hero(..., stack = TRUE)) |>
+    add_merge(C1, C2) |>
+    add_crop(width = 0.6) |>
+    add_zoom(width = 0.4, height = 0.1)
+}
+
+test_that("stacked strips below the hero are as wide as the hero", {
+  images <- local_montage_images()
+  p <- get_panels(strip_montage(images, position = "bottom", labels = FALSE))
+  hero <- p[p$condition == "ctrl" & p$role == "hero", ]
+  side <- p[p$condition == "ctrl" & p$role == "side", ]
+  # the zoom strips have another shape than the hero
+  expect_equal((side$ymax - side$ymin) / (side$xmax - side$xmin), c(0.25, 0.25))
+  expect_equal(hero$ymax - hero$ymin, hero$xmax - hero$xmin)
+  # as wide as the hero, one under the other with the normal gap
+  expect_equal(side$xmin, rep(hero$xmin, 2))
+  expect_equal(side$xmax, rep(hero$xmax, 2))
+  expect_equal(side$ymin[1] - hero$ymax, 1)
+  expect_equal(side$ymin[2] - side$ymax[1], 1)
+  # the blocks fit the 90 mm box
+  expect_equal(max(p$xmax) - min(p$xmin), 90)
+
+  # labels go on the left, rotated like row headers, without changing the panels
+  s <- montage_layout_space(strip_montage(images, position = "bottom"), call = NULL)
+  q <- s$panels
+  expect_equal(q$xmax - q$xmin, p$xmax - p$xmin)
+  # labelled once, left of the first block: none between the blocks
+  sl <- s$side_labels
+  expect_equal(sl$label, c("C1", "C2"))
+  expect_equal(unique(sl$angle), 90)
+  side <- q[q$.role == "side" & q$col == 1, ]
+  expect_true(all(sl$x < side$xmin))
+  expect_equal(sl$y, (side$ymin + side$ymax) / 2)
+  expect_equal(q$xmin[q$col == 2][1] - max(q$xmax[q$col == 1]), 3)
+})
+
+test_that("stacked strips beside the hero are as high as the hero", {
+  m <- tidymontage(local_montage_images(), x = condition, layout = layout_hero(stack = TRUE, labels = FALSE)) |>
+    add_merge(C1, C2) |>
+    add_crop(width = 0.6) |>
+    add_zoom(width = 0.1, height = 0.4)
+  p <- get_panels(m)
+  hero <- p[p$condition == "ctrl" & p$role == "hero", ]
+  side <- p[p$condition == "ctrl" & p$role == "side", ]
+  expect_equal(side$ymin, rep(hero$ymin, 2))
+  expect_equal(side$ymax, rep(hero$ymax, 2))
+  expect_equal(side$xmin[1] - hero$xmax, 1)
+  expect_equal(side$xmin[2] - side$xmax[1], 1)
+
+  left <- get_panels(adjust_layout(m, layout = layout_hero(position = "left", stack = TRUE, labels = FALSE)))
+  hero <- left[left$condition == "ctrl" & left$role == "hero", ]
+  side <- left[left$condition == "ctrl" & left$role == "side", ]
+  expect_equal(hero$xmin - side$xmax[2], 1)
+
+  # labelled below the strips
+  s <- montage_layout_space(adjust_layout(m, layout = layout_hero(stack = TRUE)), call = NULL)
+  side <- s$panels[s$panels$.role == "side", ]
+  expect_equal(unique(s$side_labels$angle), 0)
+  expect_true(all(s$side_labels$y > side$ymax))
+
+  # blocks above each other: labelled once, below the last row
+  s <- montage_layout_space(adjust_layout(m, x = NULL, y = condition, layout = layout_hero(stack = TRUE)), call = NULL)
+  q <- s$panels
+  expect_equal(s$side_labels$label, c("C1", "C2"))
+  expect_true(all(s$side_labels$y > max(q$ymax)))
+  expect_equal(q$ymin[q$row == 2][1] - max(q$ymax[q$row == 1]), 3)
+})
+
+test_that("stacked strips get a scale bar on the hero and the last strip", {
+  m <- strip_montage(local_montage_images(), position = "bottom") |> add_scale_bar()
+  s <- montage_layout_space(m, call = NULL)
+  p <- s$panels
+  sb <- s$scale_bars
+  on <- vapply(seq_len(nrow(sb)), function(k) which(sb$xmin[k] >= p$xmin & sb$xmax[k] <= p$xmax &
+    sb$ymin[k] >= p$ymin & sb$ymax[k] <= p$ymax), integer(1))
+  # one block's hero (the crop) and its last strip (the zoom)
+  expect_equal(p$view[on], c("crop", "zoom"))
+  expect_equal(p$channel[on], c("merge", "C2"))
+  expect_equal(format(layout_hero(position = "bottom", stack = TRUE)), 'layout_hero(position = "bottom", stack = TRUE)')
+})

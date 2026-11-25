@@ -241,7 +241,8 @@ hero_panel_space <- function(data, spec, views, call) {
   panels <- panels[order(panels$row, panels$col, panels$.role, panels$.k), , drop = FALSE]
   list(
     type = "hero", panels = panels, data = data, col_grid = blocks_x$grid, row_grid = blocks_y$grid,
-    n_side = n, position = spec$layout$position, labels = isTRUE(spec$layout$labels %||% TRUE)
+    n_side = n, position = spec$layout$position, labels = isTRUE(spec$layout$labels %||% TRUE),
+    stack = isTRUE(spec$layout$stack)
   )
 }
 

@@ -12,7 +12,8 @@ layout_hero(
   hero = NULL,
   side = NULL,
   position = c("right", "bottom", "left"),
-  labels = TRUE
+  labels = TRUE,
+  stack = FALSE
 )
 }
 \arguments{
@@ -29,7 +30,17 @@ panels are the single channels of the zoom (or of the main view).}
 \item{labels}{For the hero layout: label the small panels with what
 distinguishes them (usually the channel), in the header font, outside the
 images: below them for \code{position = "bottom"}, beside them otherwise,
-rotated like ggplot2 facet strips. Long labels wrap onto two lines.}
+rotated like ggplot2 facet strips. Long labels wrap onto two lines.
+Stacked side panels line up across blocks, so they are labelled once:
+on the left of the first column when below the hero, and below the last
+row when beside it.}
+
+\item{stack}{For the hero layout: stack the small panels so that each is as
+long as the hero's edge, for strips such as a 15 x 4 um zoom. Below the
+hero, the strips are as wide as the hero and placed one under the other;
+beside it, they are as high as the hero and placed side by side. The side
+panels can have another aspect ratio than the hero, but all side panels
+share one.}
 }
 \value{
 A layout specification for \code{\link[=tidymontage]{tidymontage()}} or \code{\link[=adjust_layout]{adjust_layout()}}.
@@ -58,5 +69,9 @@ Layouts are like themes: switch between them with the \code{layout} argument of
 tidymontage(images, x = condition, layout = layout_grid(channel = "x"))
 tidymontage(images, x = condition, layout = "hero")
 tidymontage(images, layout = layout_hero(side = panel(view = "crop"), position = "bottom"))
+
+# a big merge with zoom strips of each channel below it
+tidymontage(images, layout = layout_hero(position = "bottom", stack = TRUE)) |>
+  add_zoom(width = 15, height = 4)
 }
 }

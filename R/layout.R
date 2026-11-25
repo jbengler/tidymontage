@@ -26,6 +26,15 @@
 #'   distinguishes them (usually the channel), in the header font, outside the
 #'   images: below them for `position = "bottom"`, beside them otherwise,
 #'   rotated like ggplot2 facet strips. Long labels wrap onto two lines.
+#'   Stacked side panels line up across blocks, so they are labelled once:
+#'   on the left of the first column when below the hero, and below the last
+#'   row when beside it.
+#' @param stack For the hero layout: stack the small panels so that each is as
+#'   long as the hero's edge, for strips such as a 15 x 4 um zoom. Below the
+#'   hero, the strips are as wide as the hero and placed one under the other;
+#'   beside it, they are as high as the hero and placed side by side. The side
+#'   panels can have another aspect ratio than the hero, but all side panels
+#'   share one.
 #'
 #' @returns A layout specification for [tidymontage()] or [adjust_layout()].
 #' @examples
@@ -33,6 +42,10 @@
 #' tidymontage(images, x = condition, layout = layout_grid(channel = "x"))
 #' tidymontage(images, x = condition, layout = "hero")
 #' tidymontage(images, layout = layout_hero(side = panel(view = "crop"), position = "bottom"))
+#'
+#' # a big merge with zoom strips of each channel below it
+#' tidymontage(images, layout = layout_hero(position = "bottom", stack = TRUE)) |>
+#'   add_zoom(width = 15, height = 4)
 #' }
 #' @name layouts
 NULL
@@ -48,7 +61,8 @@ layout_grid <- function(channel = c("auto", "x", "y"), view = c("auto", "x", "y"
 
 #' @rdname layouts
 #' @export
-layout_hero <- function(hero = NULL, side = NULL, position = c("right", "bottom", "left"), labels = TRUE) {
+layout_hero <- function(hero = NULL, side = NULL, position = c("right", "bottom", "left"), labels = TRUE,
+                        stack = FALSE) {
   for (arg in c("hero", "side")) {
     v <- get(arg)
     if (!is.null(v) && !inherits(v, "tidymontage_panel")) {
@@ -56,7 +70,10 @@ layout_hero <- function(hero = NULL, side = NULL, position = c("right", "bottom"
     }
   }
   structure(
-    list(type = "hero", hero = hero, side = side, position = rlang::arg_match(position), labels = isTRUE(labels)),
+    list(
+      type = "hero", hero = hero, side = side, position = rlang::arg_match(position), labels = isTRUE(labels),
+      stack = isTRUE(stack)
+    ),
     class = "tidymontage_layout"
   )
 }
@@ -101,7 +118,8 @@ format.tidymontage_layout <- function(x, ...) {
       if (!is.null(x$hero)) paste0("hero = ", format(x$hero)),
       if (!is.null(x$side)) paste0("side = ", format(x$side)),
       if (x$position != "right") paste0("position = \"", x$position, "\""),
-      if (!isTRUE(x$labels %||% TRUE)) "labels = FALSE"
+      if (!isTRUE(x$labels %||% TRUE)) "labels = FALSE",
+      if (isTRUE(x$stack)) "stack = TRUE"
     )
     if (length(args) == 0) return("\"hero\"")
     paste0("layout_hero(", paste(args, collapse = ", "), ")")
