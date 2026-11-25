@@ -6,6 +6,8 @@
 <!-- badges: start -->
 
 [![R-CMD-check](https://github.com/jbengler/tidymontage/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/jbengler/tidymontage/actions/workflows/R-CMD-check.yaml)
+[![Lifecycle:
+experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 <!-- badges: end -->
 
 The goal of tidymontage is to streamline the creation of
@@ -14,10 +16,6 @@ publication-ready microscopy figure montages. It is a sibling of
 images goes in, montage components are added with pipeable verbs, and a
 figure of exact physical size comes out, ready to be placed next to
 tidyplots with [tidylayouts](https://github.com/jbengler/tidylayouts).
-
-tidymontage is in early development. Reading images, processing them
-with dplyr, and building montages with merges, overlays, crops, zooms,
-grid and hero layouts, colour legends and scale bars works.
 
 ## Installation
 
@@ -28,6 +26,8 @@ You can install the development version of tidymontage from
 # install.packages("pak")
 pak::pak("jbengler/tidymontage")
 ```
+
+tidymontage is experimental: functions and arguments may still change.
 
 ## Getting started
 
