@@ -3,11 +3,17 @@
 adjust_size() (by default, the panel grid fits into 90 x 90 mm). The file
 format is taken from the file extension: .pdf, .png, .tif/.tiff,
 .jpg/.jpeg or .svg. Bitmaps are written with the ragg package if it
-is installed, for consistent output on all systems."><meta property="og:description" content="Renders the montage and saves it at its fixed physical size, set with
+is installed, for consistent output on all systems. PDF and SVG files are
+written with Cairo graphics where it is available. Without it (e.g. on
+macOS without XQuartz), PDF falls back to R's standard PDF device and SVG to
+the svglite package."><meta property="og:description" content="Renders the montage and saves it at its fixed physical size, set with
 adjust_size() (by default, the panel grid fits into 90 x 90 mm). The file
 format is taken from the file extension: .pdf, .png, .tif/.tiff,
 .jpg/.jpeg or .svg. Bitmaps are written with the ragg package if it
-is installed, for consistent output on all systems."></head><body>
+is installed, for consistent output on all systems. PDF and SVG files are
+written with Cairo graphics where it is available. Without it (e.g. on
+macOS without XQuartz), PDF falls back to R's standard PDF device and SVG to
+the svglite package."></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -50,7 +56,10 @@ is installed, for consistent output on all systems."></head><body>
 <code><a href="adjust_size.html">adjust_size()</a></code> (by default, the panel grid fits into 90 x 90 mm). The file
 format is taken from the file extension: <code>.pdf</code>, <code>.png</code>, <code>.tif</code>/<code>.tiff</code>,
 <code>.jpg</code>/<code>.jpeg</code> or <code>.svg</code>. Bitmaps are written with the ragg package if it
-is installed, for consistent output on all systems.</p>
+is installed, for consistent output on all systems. PDF and SVG files are
+written with Cairo graphics where it is available. Without it (e.g. on
+macOS without XQuartz), PDF falls back to R's standard PDF device and SVG to
+the svglite package.</p>
     </div>
 
     <div class="section level2">

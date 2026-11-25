@@ -5,7 +5,10 @@ Renders the montage and saves it at its fixed physical size, set with
 (by default, the panel grid fits into 90 x 90 mm). The file format is
 taken from the file extension: `.pdf`, `.png`, `.tif`/`.tiff`,
 `.jpg`/`.jpeg` or `.svg`. Bitmaps are written with the ragg package if
-it is installed, for consistent output on all systems.
+it is installed, for consistent output on all systems. PDF and SVG files
+are written with Cairo graphics where it is available. Without it (e.g.
+on macOS without XQuartz), PDF falls back to R's standard PDF device and
+SVG to the svglite package.
 
 ## Usage
 
