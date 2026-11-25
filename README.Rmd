@@ -414,6 +414,18 @@ cells |>
   add_zoom(width = 20, center = zooms)
 ```
 
+Rows and columns can differ in shape: all panels in a row share a height and
+all panels in a column a width. So zooms can be flat strips, on rows of their
+own below the crops:
+
+```{r zoom-strips}
+cells |>
+  tidymontage(x = channel, y = c(mutant, view)) |>
+  add_merge(Cy3, `Alexa Fluor 488`, DAPI) |>
+  add_crop(width = 60, center = crops) |>
+  add_zoom(width = 15, height = 4, center = zooms)
+```
+
 Call `add_zoom()` again for more zooms. With two or more, each zoom gets a
 number, shown in the top-left corner of its boxes and its panels, and the
 views are named `"zoom 1"`, `"zoom 2"`, and so on:
@@ -580,6 +592,18 @@ a flat zoom of each channel under a big merge:
 ```{r}
 cells |>
   tidymontage(x = mutant, layout = layout_hero(position = "right", stack = TRUE)) |>
+  add_merge(Cy3, `Alexa Fluor 488`, DAPI) |>
+  add_crop(width = 60, center = crops) |>
+  add_zoom(width = 4, height = 15, center = zooms) |> 
+  add_scale_bar() |> 
+  adjust_size(width = 160) |> 
+  adjust_colors(DAPI = "#F1CD36") |> 
+  add_color_legend(position = "bottom")
+```
+
+```{r}
+cells |>
+  tidymontage(x = mutant) |>
   add_merge(Cy3, `Alexa Fluor 488`, DAPI) |>
   add_crop(width = 60, center = crops) |>
   add_zoom(width = 4, height = 15, center = zooms) |> 

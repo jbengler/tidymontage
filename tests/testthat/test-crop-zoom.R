@@ -150,11 +150,22 @@ test_that("zooms outside the crop get no box, with a warning", {
   expect_warning(get_panels(m), "lies outside")
 })
 
-test_that("crops and zooms must share the panel shape", {
+test_that("crops and zooms of different shapes line up in rows and columns", {
+  # views on columns: each column has its width, all rows one height
   m <- tidymontage(local_montage_images()) |>
     add_crop(width = 0.6, height = 0.4) |>
     add_zoom(width = 0.2) |> adjust_layout(x = c(view, condition), y = channel)
-  expect_error(get_panels(m), "same aspect ratio")
+  p <- get_panels(m)
+  w <- p$xmax - p$xmin
+  h <- p$ymax - p$ymin
+  expect_equal(unique(round(h, 6)), round(h[1], 6))
+  expect_equal(w[p$view == "crop"][1] / w[p$view == "zoom"][1], 1.5)
+  # views on rows: each row has its height, all columns one width
+  p <- get_panels(adjust_layout(m, x = condition, y = c(view, channel)))
+  w <- p$xmax - p$xmin
+  h <- p$ymax - p$ymin
+  expect_equal(unique(round(w, 6)), round(w[1], 6))
+  expect_equal(h[p$view == "crop"][1] / h[p$view == "zoom"][1], 2 / 3)
 })
 
 test_that("crop and zoom steps print as calls", {

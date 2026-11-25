@@ -9,8 +9,10 @@ strip_mm <- function(size) size * 0.3528 * 1.9
 #
 # Both layouts are a grid of cells: a cell is one panel (grid) or one block of
 # hero plus side panels (hero). The size of a cell is linear in a free size
-# `s` (the panel width, or the side panel width): w = cw * s + dw,
-# h = ch * s + dh. The largest `s` that fits the box is used.
+# `s` (a panel width, or the side panel width): w = cw * s + dw,
+# h = ch * s + dh. The largest `s` that fits the box is used. In the grid,
+# each column has its own width and each row its own height (see
+# grid_tracks()); cw and ch are their means.
 montage_geometry <- function(space, size = default_size(), gap = 1,
                              headers = list(x = TRUE, y = TRUE, size = 7),
                              extra = list(top = 0, bottom = 0, right = 0, left = 0),
@@ -37,8 +39,9 @@ montage_geometry <- function(space, size = default_size(), gap = 1,
     shape <- hero_shape(a_hero, a_side, space$n_side, gap, space$position, isTRUE(space$stack))
     cell_gap <- 3 * gap
   } else {
-    a <- check_aspect(panels$.aspect, "panels")
-    shape <- list(cw = 1, dw = 0, ch = a, dh = 0)
+    # rows have one height and columns one width, in units of the free size
+    tracks <- grid_tracks(panels, call)
+    shape <- list(cw = mean(tracks$w), dw = 0, ch = mean(tracks$h), dh = 0)
     cell_gap <- gap
   }
 
@@ -92,13 +95,20 @@ montage_geometry <- function(space, size = default_size(), gap = 1,
   cell_lab_h <- if (shared) 0 else lab_h
   pre_w <- if (shared) lab_w else 0
   post_h <- if (shared) lab_h else 0
-  cell_w <- shape$cw * s_free + shape$dw + cell_lab_w
-  cell_h <- shape$ch * s_free + shape$dh + cell_lab_h
-  width <- left + pre_w + n_col * cell_w + (n_col - 1) * cell_gap + extra$right
-  height <- top + n_row * cell_h + (n_row - 1) * cell_gap + post_h + extra$bottom
+  if (identical(space$type, "hero")) {
+    col_w <- rep(shape$cw * s_free + shape$dw + cell_lab_w, n_col)
+    row_h <- rep(shape$ch * s_free + shape$dh + cell_lab_h, n_row)
+  } else {
+    col_w <- tracks$w * s_free
+    row_h <- tracks$h * s_free
+  }
+  col_start <- left + pre_w + c(0, cumsum(col_w + cell_gap))[seq_len(n_col)]
+  row_start <- top + c(0, cumsum(row_h + cell_gap))[seq_len(n_row)]
+  width <- left + pre_w + sum(col_w) + (n_col - 1) * cell_gap + extra$right
+  height <- top + sum(row_h) + (n_row - 1) * cell_gap + post_h + extra$bottom
 
-  ox <- left + pre_w + (panels$col - 1) * (cell_w + cell_gap)
-  oy <- top + (panels$row - 1) * (cell_h + cell_gap)
+  ox <- col_start[panels$col]
+  oy <- row_start[panels$row]
   if (identical(space$type, "hero")) {
     r <- hero_rects(shape, s_free, gap, space$n_side, space$position, panels$.role, panels$.k, isTRUE(space$stack))
     # labels on the left come first
@@ -110,8 +120,8 @@ montage_geometry <- function(space, size = default_size(), gap = 1,
   } else {
     panels$xmin <- ox
     panels$ymin <- oy
-    panels$xmax <- ox + s_free
-    panels$ymax <- oy + s_free * shape$ch
+    panels$xmax <- ox + col_w[panels$col]
+    panels$ymax <- oy + row_h[panels$row]
   }
 
   side_labels <- NULL
@@ -142,13 +152,12 @@ montage_geometry <- function(space, size = default_size(), gap = 1,
   }
 
   # headers span the panels, not the label space
-  col_from <- left + pre_w + (seq_len(n_col) - 1) * (cell_w + cell_gap) +
-    (if (identical(lab_at, "left") && !shared) lab_w else 0)
-  row_from <- top + (seq_len(n_row) - 1) * (cell_h + cell_gap)
+  col_from <- col_start + (if (identical(lab_at, "left") && !shared) lab_w else 0)
+  row_from <- row_start
   labels <- NULL
   lines <- NULL
   if (!is.null(col_grid)) {
-    st <- header_strips(col_grid, col_from, col_from + cell_w - cell_lab_w)
+    st <- header_strips(col_grid, col_from, col_from + col_w - cell_lab_w)
     labels <- rbind(labels, data.frame(
       label = st$label, x = (st$from + st$to) / 2, y = extra$top + (st$level - 0.5) * strip, angle = 0
     ))
@@ -159,7 +168,7 @@ montage_geometry <- function(space, size = default_size(), gap = 1,
     ))
   }
   if (!is.null(row_grid)) {
-    st <- header_strips(row_grid, row_from, row_from + cell_h - cell_lab_h)
+    st <- header_strips(row_grid, row_from, row_from + row_h - cell_lab_h)
     labels <- rbind(labels, data.frame(
       label = st$label, x = left0 + (st$level - 0.5) * strip, y = (st$from + st$to) / 2, angle = 90
     ))
@@ -173,6 +182,59 @@ montage_geometry <- function(space, size = default_size(), gap = 1,
     panels = panels, labels = labels, lines = lines, side_labels = side_labels,
     width = width, height = height
   )
+}
+
+# Widths of the grid's columns and heights of its rows, relative to the first
+# column of each connected part of the grid, so that every panel's shape
+# (height / width) is its row's height over its column's width. Panels of one
+# shape give equal tracks; a square crop row over a row of flat zoom strips
+# gives two row heights. Shapes that can't be split this way are an error.
+grid_tracks <- function(panels, call = rlang::caller_env()) {
+  n_col <- max(panels$col)
+  n_row <- max(panels$row)
+  w <- rep(NA_real_, n_col)
+  h <- rep(NA_real_, n_row)
+  a <- panels$.aspect
+  repeat {
+    # start a connected part at its first column without a width
+    todo <- setdiff(unique(panels$col), which(!is.na(w)))
+    if (length(todo) == 0) break
+    w[min(todo)] <- 1
+    repeat {
+      changed <- FALSE
+      for (i in seq_len(nrow(panels))) {
+        r <- panels$row[i]
+        k <- panels$col[i]
+        if (!is.na(w[k]) && is.na(h[r])) {
+          h[r] <- a[i] * w[k]
+          changed <- TRUE
+        } else if (is.na(w[k]) && !is.na(h[r])) {
+          w[k] <- h[r] / a[i]
+          changed <- TRUE
+        }
+      }
+      if (!changed) break
+    }
+  }
+  # columns or rows without panels
+  w[is.na(w)] <- 1
+  h[is.na(h)] <- mean(h, na.rm = TRUE)
+  bad <- abs(h[panels$row] / w[panels$col] - a) > 0.01 * a
+  if (any(bad)) {
+    what <- intersect(c("channel", "view"), names(panels))
+    where <- unique(vapply(which(bad), function(i) {
+      paste0(what, " = ", vapply(what, function(k) as.character(panels[[k]][i]), ""), collapse = ", ")
+    }, character(1)))
+    cli::cli_abort(
+      c(
+        "Panels of different shapes must line up: all panels in a row need the same height, and all panels in a column the same width.",
+        "x" = "The shape of {.val {where[1]}} doesn't fit its row and column.",
+        "i" = "Put views of different shapes on different rows (or columns), e.g. with {.code y = view}, use the same width-to-height ratio for crops and zooms, or crop images of different shapes."
+      ),
+      call = call
+    )
+  }
+  list(w = w, h = h)
 }
 
 # Wrap labels that are wider than `width` (mm) onto two lines, at the space

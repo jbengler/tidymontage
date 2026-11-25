@@ -116,13 +116,20 @@ test_that("layouts explain what is wrong", {
   })
 })
 
-test_that("panels must share one aspect ratio", {
+test_that("panels must line up in rows and columns", {
   images <- example_images()
+  # one image of another shape: it shares a row and a column with the others
   images$img[2] <- new_img(list(img_source("fake.tif", page = 9, size_x = 5L, size_y = 5L)))
   expect_error(
     get_panels(tidymontage(images, x = condition, y = channel)),
-    "same aspect ratio"
+    "must line up"
   )
+  # images of another shape in their own row work
+  images$img[4] <- new_img(list(img_source("fake.tif", page = 10, size_x = 5L, size_y = 5L)))
+  p <- get_panels(tidymontage(images, x = condition, y = channel))
+  h <- p$ymax - p$ymin
+  expect_equal(h[p$channel == "GFP"][1] / h[p$channel == "DAPI"][1], 1.25)
+  expect_equal(unique(round(p$xmax - p$xmin, 6)), round(p$xmax[1] - p$xmin[1], 6))
 })
 
 test_that("layouts and panels print as calls", {

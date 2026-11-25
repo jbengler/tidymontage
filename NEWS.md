@@ -1,5 +1,11 @@
 # tidymontage (development version)
 
+* Grid rows and columns can differ in shape: panels in a row share a height
+  and panels in a column a width, instead of all panels sharing one shape.
+  For example, a row of square crops can sit above a row of flat zoom
+  strips (`y = view`), or images of another shape can fill a row of their
+  own. Shapes that don't line up still give an error, now naming a panel.
+
 * `layout_hero(stack = TRUE)` stacks the side panels so that each is as long
   as the hero's edge: strips below the hero as wide as the hero, or beside it
   as high as the hero. Side panels can have another shape than the hero, for
