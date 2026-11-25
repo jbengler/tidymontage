@@ -37,6 +37,8 @@ Suggests:
     tidyr,
     vdiffr,
     withr
+Remotes:
+    jbengler/tidylayouts
 Config/testthat/edition: 3
 URL: https://github.com/jbengler/tidymontage, https://jbengler.github.io/tidymontage/
 BugReports: https://github.com/jbengler/tidymontage/issues
