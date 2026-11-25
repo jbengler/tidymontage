@@ -37,3 +37,4 @@
   colour bars labelled with the display range (`ranges = TRUE`).
 
 * Initial CRAN submission.
+
