@@ -24,7 +24,10 @@ Renders the montage and saves it at its fixed physical size, set with
 \code{\link[=adjust_size]{adjust_size()}} (by default, the panel grid fits into 90 x 90 mm). The file
 format is taken from the file extension: \code{.pdf}, \code{.png}, \code{.tif}/\code{.tiff},
 \code{.jpg}/\code{.jpeg} or \code{.svg}. Bitmaps are written with the ragg package if it
-is installed, for consistent output on all systems.
+is installed, for consistent output on all systems. PDF and SVG files are
+written with Cairo graphics where it is available. Without it (e.g. on
+macOS without XQuartz), PDF falls back to R's standard PDF device and SVG to
+the svglite package.
 }
 \examples{
 \dontrun{

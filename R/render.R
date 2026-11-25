@@ -237,7 +237,10 @@ gtable_size_mm <- function(gt) {
 #' [adjust_size()] (by default, the panel grid fits into 90 x 90 mm). The file
 #' format is taken from the file extension: `.pdf`, `.png`, `.tif`/`.tiff`,
 #' `.jpg`/`.jpeg` or `.svg`. Bitmaps are written with the ragg package if it
-#' is installed, for consistent output on all systems.
+#' is installed, for consistent output on all systems. PDF and SVG files are
+#' written with Cairo graphics where it is available. Without it (e.g. on
+#' macOS without XQuartz), PDF falls back to R's standard PDF device and SVG to
+#' the svglite package.
 #'
 #' @param montage A [tidymontage()] object.
 #' @param filename File to write.
@@ -264,18 +267,47 @@ save_montage <- function(montage, filename, dpi = 300, ...) {
   invisible(montage)
 }
 
+# Open a Cairo device; FALSE if Cairo is missing or the device didn't open.
+open_cairo <- function(device, filename, inch, ...) {
+  if (!isTRUE(capabilities("cairo"))) {
+    return(FALSE)
+  }
+  before <- grDevices::dev.list()
+  opened <- tryCatch(
+    {
+      suppressWarnings(device(filename, width = inch[1], height = inch[2], ...))
+      TRUE
+    },
+    error = function(e) FALSE
+  )
+  opened && length(grDevices::dev.list()) > length(before)
+}
+cairo_pdf_device <- function(...) grDevices::cairo_pdf(...)
+cairo_svg_device <- function(...) grDevices::svg(...)
+
 open_device <- function(filename, width, height, dpi, ..., call = rlang::caller_env()) {
   ext <- tolower(tools::file_ext(filename))
   inch <- c(width, height) / 25.4
   has_ragg <- requireNamespace("ragg", quietly = TRUE)
   switch(
     ext,
-    pdf = if (capabilities("cairo")) {
-      grDevices::cairo_pdf(filename, width = inch[1], height = inch[2], ...)
-    } else {
+    # Cairo devices first (better fonts); they fail where Cairo is missing,
+    # e.g. on macOS without XQuartz
+    pdf = if (!open_cairo(cairo_pdf_device, filename, inch, ...)) {
       grDevices::pdf(filename, width = inch[1], height = inch[2], useDingbats = FALSE, ...)
     },
-    svg = grDevices::svg(filename, width = inch[1], height = inch[2], ...),
+    svg = if (!open_cairo(cairo_svg_device, filename, inch, ...)) {
+      if (!requireNamespace("svglite", quietly = TRUE)) {
+        cli::cli_abort(
+          c(
+            "Can't save {.file {filename}}: SVG needs Cairo graphics, which isn't available here.",
+            "i" = "Install the {.pkg svglite} package, or on macOS install XQuartz."
+          ),
+          call = call
+        )
+      }
+      svglite::svglite(filename, width = inch[1], height = inch[2], ...)
+    },
     png = if (has_ragg) {
       ragg::agg_png(filename, width = width, height = height, units = "mm", res = dpi, background = "white", ...)
     } else {

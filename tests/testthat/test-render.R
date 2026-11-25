@@ -71,6 +71,26 @@ test_that("save_montage() writes every supported format, and refuses others", {
   expect_identical(grDevices::dev.list(), devices)
 })
 
+test_that("save_montage() falls back when Cairo can't open a device", {
+  skip_if_not_installed("svglite")
+  m <- tidymontage(local_montage_images(), x = condition, width = 30, height = NA)
+  dir <- withr::local_tempdir()
+  devices <- grDevices::dev.list()
+  # as on macOS without XQuartz: the Cairo devices warn and open nothing
+  local_mocked_bindings(
+    cairo_pdf_device = function(...) warning("unable to load cairo"),
+    cairo_svg_device = function(...) warning("unable to load cairo")
+  )
+  for (ext in c("pdf", "svg")) {
+    path <- file.path(dir, paste0("montage.", ext))
+    expect_message(save_montage(m, path, dpi = 72), "Saved")
+    expect_gt(file.size(path), 0)
+  }
+  expect_match(readLines(file.path(dir, "montage.pdf"), n = 1, warn = FALSE), "%PDF")
+  expect_match(paste(readLines(file.path(dir, "montage.svg"), warn = FALSE), collapse = ""), "<svg")
+  expect_identical(grDevices::dev.list(), devices)
+})
+
 test_that("print() draws at the physical size without errors", {
   m <- tidymontage(local_montage_images(), x = condition)
   path <- withr::local_tempfile(fileext = ".pdf")

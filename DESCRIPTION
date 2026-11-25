@@ -32,6 +32,7 @@ Suggests:
     dplyr,
     png,
     ragg,
+    svglite,
     testthat (>= 3.0.0),
     tidylayouts,
     tidyr,
